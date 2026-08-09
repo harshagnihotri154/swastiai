@@ -7,6 +7,7 @@ import { AboutPage } from './public/AboutPage';
 import { PricingPage } from './public/PricingPage';
 import { ContactPage } from './public/ContactPage';
 import { HowToUseView } from './HowToUseView';
+import { ArchitectureDiagramSection } from './public/ArchitectureDiagramSection';
 
 interface LandingPageProps {
   onOpenAuth: () => void;
@@ -314,6 +315,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
                 )}
               </div>
             </section>
+
+            {/* Interactive Working Architecture Diagram Section */}
+            <ArchitectureDiagramSection />
 
             {/* Interactive ROI Calculator Section */}
             <section style={{ padding: '80px 48px', backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>

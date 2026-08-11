@@ -23,6 +23,7 @@ export const LiveInboxView: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [activeContact, setActiveContact] = useState<string>('');
   const [replyText, setReplyText] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchRealConversations = async () => {
@@ -177,6 +178,8 @@ export const LiveInboxView: React.FC = () => {
               <Search size={15} color="#64748b" style={{ position: 'absolute', left: '10px', top: '12px' }} />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="input-field"
                 style={{ paddingLeft: '32px', fontSize: '0.85rem' }}
                 placeholder="Search real chats..."
@@ -186,7 +189,13 @@ export const LiveInboxView: React.FC = () => {
 
           {/* Conversations Items */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {conversations.map((c) => {
+            {conversations
+              .filter(c => 
+                c.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.lastMsg.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+              .map((c) => {
               const isSelected = c.phone === activeContact;
               return (
                 <div

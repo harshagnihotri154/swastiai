@@ -146,6 +146,41 @@ export class BaileysService {
         }
       });
 
+      // Sync all existing historical WhatsApp chats into MongoDB
+      this.sock.ev.on("messaging-history.set", async ({ messages }: any) => {
+        try {
+          if (!Array.isArray(messages)) return;
+          for (const msg of messages) {
+            if (!msg.message || !msg.key.remoteJid) continue;
+            const senderJid = msg.key.remoteJid;
+            if (senderJid.endsWith("@g.us")) continue;
+
+            const senderPhone = this.resolveCustomerPhone(msg);
+            const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+            if (!text.trim()) continue;
+
+            let conversation = await ConversationModel.findOne({ customerPhone: senderPhone });
+            if (!conversation) {
+              conversation = new ConversationModel({ customerPhone: senderPhone, messages: [], isPaused: false });
+            }
+
+            const role = msg.key.fromMe ? "model" : "user";
+            const exists = conversation.messages.some(m => m.content === text);
+            if (!exists) {
+              conversation.messages.push({
+                role,
+                content: text,
+                timestamp: msg.messageTimestamp ? new Date(Number(msg.messageTimestamp) * 1000) : new Date()
+              });
+              await conversation.save();
+            }
+          }
+          console.log("📚 Synced historical WhatsApp chats to MongoDB Atlas!");
+        } catch (err: any) {
+          console.warn("History sync warning:", err.message);
+        }
+      });
+
       // Handle real incoming WhatsApp messages from phone
       this.sock.ev.on("messages.upsert", async (m: any) => {
         if (m.type !== "notify") return;

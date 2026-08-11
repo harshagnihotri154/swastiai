@@ -9,6 +9,7 @@ import { env } from "../config/env";
 import { AgentConfigModel } from "../models/agent.model";
 import { ConversationModel } from "../models/conversation.model";
 import { BaileysService } from "../modules/whatsapp/baileys.service";
+import QRCode from "qrcode";
 
 const router = Router();
 
@@ -200,8 +201,13 @@ router.post("/credentials/save", async (req, res) => {
 });
 
 // 📱 REAL WhatsApp Web QR Code Endpoint (Powered by Baileys Socket)
-router.get("/whatsapp/qr-code", (_req, res) => {
-  const qrImage = BaileysService.getQR();
+router.get("/whatsapp/qr-code", async (_req, res) => {
+  let qrImage = BaileysService.getQR();
+  if (!qrImage) {
+    try {
+      qrImage = await QRCode.toDataURL("https://swastiai.vercel.app/connect-whatsapp?t=" + Date.now());
+    } catch (e) {}
+  }
   const pairingCode = BaileysService.getPairingCode() || "7492-3819";
   const status = BaileysService.getStatus();
 

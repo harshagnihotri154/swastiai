@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Pause, Play, CheckCheck, Search, RefreshCw, MessageSquare, User, Bot, ShieldAlert, PhoneCall } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 
@@ -27,6 +27,11 @@ export const LiveInboxView: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const fetchRealConversations = async () => {
     try {
@@ -107,6 +112,11 @@ export const LiveInboxView: React.FC = () => {
       isHuman: false,
       messages: []
     };
+
+  const msgLength = currentConv?.messages?.length || 0;
+  useEffect(() => {
+    scrollToBottom();
+  }, [activeContact, msgLength]);
 
   const handleSelectContact = (phone: string) => {
     setActiveContact(phone);
@@ -203,10 +213,8 @@ export const LiveInboxView: React.FC = () => {
         style={{
           padding: 0,
           display: 'grid',
-          gridTemplateColumns: '340px 1fr',
-          minHeight: '660px',
-          height: 'calc(100vh - 240px)',
-          maxHeight: '800px',
+          gridTemplateColumns: '360px 1fr',
+          minHeight: '680px',
           overflow: 'hidden',
           background: '#ffffff',
           borderRadius: '16px',
@@ -215,7 +223,7 @@ export const LiveInboxView: React.FC = () => {
         }}
       >
         {/* Left Column: Conversations Sidebar */}
-        <div style={{ borderRight: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ borderRight: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexDirection: 'column', height: '680px' }}>
           {/* Search Header */}
           <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', background: '#ffffff' }}>
             <div style={{ position: 'relative' }}>
@@ -231,8 +239,8 @@ export const LiveInboxView: React.FC = () => {
             </div>
           </div>
 
-          {/* Conversations Items List */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Conversations Items List (Scrollable) */}
+          <div style={{ flex: 1, overflowY: 'auto', maxHeight: '600px', scrollbarWidth: 'thin' }}>
             {filteredConversations.length > 0 ? (
               filteredConversations.map((c) => {
                 const isSelected = normalizePhone(c.phone) === normalizePhone(currentConv.phone);
@@ -309,7 +317,7 @@ export const LiveInboxView: React.FC = () => {
         </div>
 
         {/* Right Column: Active Chat Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#efeae2' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#efeae2', height: '680px' }}>
           {/* Active Chat Header */}
           <div style={{ background: '#ffffff', padding: '14px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -371,8 +379,8 @@ export const LiveInboxView: React.FC = () => {
             </button>
           </div>
 
-          {/* Chat Messages Stream */}
-          <div style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Chat Messages Stream (Scrollable) */}
+          <div style={{ flex: 1, padding: '24px', overflowY: 'auto', height: '500px', display: 'flex', flexDirection: 'column', gap: '14px', scrollbarWidth: 'thin' }}>
             {currentConv.messages && currentConv.messages.length > 0 ? (
               currentConv.messages.map((msg, index) => {
                 const isUser = msg.role === 'user';
@@ -413,6 +421,7 @@ export const LiveInboxView: React.FC = () => {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Reply Form */}

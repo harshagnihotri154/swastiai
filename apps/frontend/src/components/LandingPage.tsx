@@ -91,7 +91,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
               {/* Background Ambient Soft Light Mesh */}
               <div style={{ position: 'absolute', top: '0%', left: '30%', width: '600px', height: '500px', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-              <div style={{
+              <div className="hero-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: '1.05fr 1fr',
                 alignItems: 'center',
@@ -100,7 +100,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
               }}>
 
                 {/* LEFT COLUMN: Headline & Action Controls */}
-                <div style={{ textAlign: 'left', zIndex: 10 }}>
+                <div className="hero-left" style={{ textAlign: 'left', zIndex: 10 }}>
                   {/* Top Pill Badge matching SS */}
                   <div style={{
                     display: 'inline-flex',
@@ -120,7 +120,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
 
                   {/* Massive Hero Headline matching SS typography */}
                   <h1 style={{
-                    fontSize: '3.6rem',
+                    fontSize: 'clamp(2.4rem, 6vw, 3.6rem)',
                     fontWeight: 900,
                     lineHeight: 1.15,
                     letterSpacing: '-0.035em',
@@ -144,7 +144,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
                   </p>
 
                   {/* CTA Action Buttons matching SS */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+                  <div className="hero-cta-buttons" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
                     <button
                       onClick={isLoggedIn ? onGoToDashboard : onOpenAuth}
                       style={{
@@ -186,7 +186,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
                   </div>
 
                   {/* Trust Checkmarks matching SS */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
+                  <div className="hero-trust-checks" style={{ display: 'flex', alignItems: 'center', gap: '24px', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <CheckCircle2 size={16} color="#6366f1" /> No Credit Card
                     </span>
@@ -200,7 +200,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
                 </div>
 
                 {/* RIGHT COLUMN: Floating Interactive Canvas matching SS */}
-                <div style={{ position: 'relative', height: '480px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="hero-canvas" style={{ position: 'relative', height: '480px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {/* Concentric Background Orbits */}
                   <div style={{
                     position: 'absolute',
@@ -357,7 +357,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
                 </div>
 
                 {/* 4 Metric Cards Grid matching SS */}
-                <div style={{
+                <div className="social-metrics-grid" style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(4, 1fr)',
                   gap: '20px',

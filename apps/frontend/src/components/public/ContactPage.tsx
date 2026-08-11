@@ -19,7 +19,7 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '80px 48px', maxWidth: '1100px', margin: '0 auto', color: '#0f172a' }}>
+    <div className="public-page-container" style={{ padding: '80px 48px', maxWidth: '1100px', margin: '0 auto', color: '#0f172a' }}>
       {/* Title */}
       <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 64px' }}>
         <span style={{ fontSize: '0.85rem', color: '#2563eb', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Get In Touch</span>
@@ -31,7 +31,7 @@ export const ContactPage: React.FC = () => {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '48px', alignItems: 'center' }}>
+      <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '48px', alignItems: 'center' }}>
         {/* Contact Form */}
         <div className="glass-panel" style={{ padding: '40px' }}>
           {submitted ? (

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   --bg-dark: #f8fafc;
@@ -21,13 +21,18 @@
   padding: 0;
 }
 
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
 /* Custom Scrollbar */
@@ -160,65 +165,110 @@ body {
   border-color: #cbd5e1;
 }
 
-/* Working Animated Lightning Beams & Pulses */
-@keyframes flowLightning {
-  0% {
-    stroke-dashoffset: 100;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
+/* Header Navbar Desktop & Mobile Rules */
+.desktop-nav {
+  display: flex;
+}
+.desktop-actions {
+  display: flex;
+}
+.mobile-hamburger-btn {
+  display: none;
 }
 
-@keyframes pulseCore {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.8;
+@media (max-width: 900px) {
+  .desktop-nav {
+    display: none !important;
   }
-  50% {
-    transform: scale(1.18);
-    opacity: 0.3;
+  .desktop-actions {
+    display: none !important;
   }
-}
-
-@keyframes waveBarAnim {
-  0%, 100% {
-    height: 10px;
-  }
-  50% {
-    height: 18px;
+  .mobile-hamburger-btn {
+    display: block !important;
   }
 }
 
-.lightning-beam-fast {
-  animation: flowLightning 1.5s linear infinite;
-}
+/* Global Mobile Responsiveness Media Queries (< 768px) */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden !important;
+  }
 
-.lightning-beam-medium {
-  animation: flowLightning 2.2s linear infinite;
-}
+  /* Responsive Headings */
+  h1 {
+    font-size: clamp(2.1rem, 7vw, 3.2rem) !important;
+    line-height: 1.2 !important;
+  }
+  h2 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem) !important;
+    line-height: 1.25 !important;
+  }
+  p {
+    font-size: 1rem !important;
+  }
 
-.lightning-beam-slow {
-  animation: flowLightning 3s linear infinite;
-}
+  /* Grid Layouts to Single Column on Mobile */
+  .grid-2col,
+  .grid-3col,
+  .grid-4col,
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
 
-.lightning-beam-output {
-  animation: flowLightning 1.2s linear infinite;
-}
+  /* Section Padding Reductions for Phones */
+  section {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  
+  .public-page-container {
+    padding: 32px 16px !important;
+  }
 
-.pulse-ring-outer {
-  animation: pulseCore 3s ease-in-out infinite;
-}
+  /* Hero Adjustments */
+  .hero-left {
+    text-align: center !important;
+  }
+  .hero-cta-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .hero-cta-buttons button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .hero-trust-checks {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
 
-.pulse-ring-inner {
-  animation: pulseCore 2s ease-in-out infinite reverse;
-}
+  /* Floating Canvas Scaling on Small Mobile Screens */
+  .hero-canvas {
+    height: 380px !important;
+    transform: scale(0.95);
+  }
 
-.wave-bar {
-  animation: waveBarAnim 1.2s ease-in-out infinite;
-}
+  /* Social Metrics Cards Grid */
+  .social-metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .social-metrics-grid > div {
+    border-left: none !important;
+    padding-left: 0 !important;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 16px;
+  }
 
-.wave-bar-tall {
-  animation: waveBarAnim 1.2s ease-in-out 0.3s infinite;
-}
+  /* Footer Links Grid */
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
 
+  /* Glass Panels Inner Padding */
+  .glass-panel {
+    padding: 24px !important;
+  }
+}

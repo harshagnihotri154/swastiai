@@ -13,7 +13,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage }) => 
       padding: '64px 48px 32px',
       color: '#475569'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr 1.4fr', gap: '48px', marginBottom: '48px' }}>
+      <div className="footer-grid" style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr 1.4fr', gap: '48px', marginBottom: '48px' }}>
         {/* Company Bio */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>

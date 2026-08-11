@@ -3,7 +3,7 @@ import { Bot, Zap, Cpu, Globe } from 'lucide-react';
 
 export const AboutPage: React.FC = () => {
   return (
-    <div style={{ padding: '80px 48px', maxWidth: '1100px', margin: '0 auto', color: '#0f172a' }}>
+    <div className="public-page-container" style={{ padding: '80px 48px', maxWidth: '1100px', margin: '0 auto', color: '#0f172a' }}>
       {/* Title */}
       <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 64px' }}>
         <span style={{ fontSize: '0.85rem', color: '#2563eb', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>About Swastiai</span>
@@ -16,7 +16,7 @@ export const AboutPage: React.FC = () => {
       </div>
 
       {/* Story & Mission Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center', marginBottom: '80px' }}>
+      <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center', marginBottom: '80px' }}>
         <div>
           <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>Our Mission & Vision</h2>
           <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '16px' }}>

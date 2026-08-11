@@ -219,7 +219,7 @@ export class BaileysService {
           }
 
           const historyContext = conversation.messages.slice(-6).map((item) => ({
-            role: item.role,
+            role: item.role === 'human' ? 'assistant' : (item.role as 'user' | 'model' | 'assistant' | 'system'),
             content: item.content
           }));
 

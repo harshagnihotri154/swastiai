@@ -107,7 +107,7 @@ export class WhatsAppController {
 
                 // Format previous messages for AI context (last 6 messages)
                 const historyContext = conversation.messages.slice(-6).map((msg) => ({
-                  role: msg.role,
+                  role: msg.role === 'human' ? 'assistant' : (msg.role as 'user' | 'model' | 'assistant' | 'system'),
                   content: msg.content
                 }));
 

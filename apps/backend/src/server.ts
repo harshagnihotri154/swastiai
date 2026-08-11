@@ -2,7 +2,7 @@ import app from "./app";
 import { env } from "./config/env";
 import { connectDB } from "./config/db";
 
-// Connect to database in serverless or local mode
+// Connect to MongoDB Atlas
 connectDB().catch((err) => console.error("MongoDB Connect Error:", err));
 
 if (!process.env.VERCEL) {
@@ -14,11 +14,4 @@ if (!process.env.VERCEL) {
   });
 }
 
-export default async function handler(req: any, res: any) {
-  try {
-    await connectDB();
-  } catch (err) {
-    // Ignore if connection already established
-  }
-  return app(req, res);
-}
+export default app;

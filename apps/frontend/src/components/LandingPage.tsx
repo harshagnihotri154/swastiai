@@ -436,7 +436,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
                   </h2>
                 </div>
 
-                <div className="glass-panel" style={{ padding: '48px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '48px', alignItems: 'center' }}>
+                <div className="glass-panel grid-2col" style={{ padding: '48px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '48px', alignItems: 'center' }}>
                   <div>
                     <label style={{ display: 'block', fontWeight: 800, fontSize: '1.1rem', color: '#0f172a', marginBottom: '12px' }}>
                       Monthly WhatsApp Inquiries: <span style={{ color: '#2563eb', fontSize: '1.3rem' }}>{monthlyInquiries.toLocaleString()} chats</span>

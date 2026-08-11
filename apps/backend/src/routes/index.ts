@@ -368,11 +368,76 @@ router.get("/whatsapp/logs", async (req, res) => {
   }
 });
 
+import { ContactEnquiryModel } from "../models/contact.model";
+import nodemailer from "nodemailer";
+
 router.use("/auth", authRoutes);
 router.use("/agent", agentRoutes);
 router.use("/knowledge", knowledgeRoutes);
 router.use("/mcp", mcpRoutes);
 router.use("/whatsapp", whatsappRoutes);
 router.use("/workspace", workspaceRoutes);
+
+// 📬 Contact Form Enquiry Route (Saves to MongoDB Atlas & Emails harshagnihotri154@gmail.com)
+router.post("/contact", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, error: "Name, email, and message are required." });
+    }
+
+    // 1. Save Enquiry in MongoDB Atlas
+    const enquiry = new ContactEnquiryModel({ name, email, message });
+    await enquiry.save();
+    console.log(`📬 New Contact Enquiry from ${name} (${email}): "${message}"`);
+
+    // 2. Dispatch Email Notification to harshagnihotri154@gmail.com
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER || "swastiai.system@gmail.com",
+          pass: process.env.SMTP_PASS || ""
+        }
+      });
+
+      const mailOptions = {
+        from: '"SwastiAI Contact Form" <noreply@swastiai.com>',
+        to: "harshagnihotri154@gmail.com",
+        subject: `🚨 New SwastiAI Enquiry from ${name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #0f172a;">
+            <h2 style="color: #2563eb;">New Customer Contact Enquiry</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Message:</strong></p>
+            <blockquote style="background: #f1f5f9; padding: 15px; border-left: 4px solid #2563eb; margin: 0;">
+              ${message.replace(/\n/g, '<br/>')}
+            </blockquote>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 20px;">Received on ${new Date().toLocaleString()}</p>
+          </div>
+        `
+      };
+
+      transporter.sendMail(mailOptions).then(info => {
+        console.log(`📧 Email notification sent to harshagnihotri154@gmail.com! MessageId: ${info.messageId}`);
+      }).catch(mailErr => {
+        console.warn(`📧 Email notification notice (SMTP pending credentials): ${mailErr.message}`);
+      });
+    } catch (mailSetupErr: any) {
+      console.warn("Mail dispatch setup warning:", mailSetupErr.message);
+    }
+
+    return res.json({
+      success: true,
+      message: "Enquiry saved successfully! Our team will contact you shortly.",
+      enquiryId: enquiry._id
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 export default router;

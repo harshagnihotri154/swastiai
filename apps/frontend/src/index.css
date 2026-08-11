@@ -211,9 +211,14 @@ body {
   .grid-2col,
   .grid-3col,
   .grid-4col,
-  .hero-grid {
+  .hero-grid,
+  .arch-diagram-grid {
     grid-template-columns: 1fr !important;
     gap: 28px !important;
+  }
+
+  .arch-diagram-grid svg {
+    display: none !important;
   }
 
   /* Section Padding Reductions for Phones */

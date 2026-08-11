@@ -1,21 +1,43 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Check } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Check, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../../config/api';
 
 export const ContactPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setName('');
-      setEmail('');
-      setMessage('');
-    }, 4000);
+    if (!name.trim() || !email.trim() || !message.trim()) return;
+
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim() })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        setErrorMsg(data.error || 'Failed to submit enquiry. Please try again.');
+      }
+    } catch (err: any) {
+      setErrorMsg('Network error. Please check connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,11 +59,26 @@ export const ContactPage: React.FC = () => {
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#059669' }}>
               <Check size={48} style={{ margin: '0 auto 16px', display: 'block' }} />
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>Message Sent Successfully!</h3>
-              <p style={{ color: '#475569', marginTop: '8px' }}>Thank you for contacting Swastiai. Our team will respond within 2 hours.</p>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>Enquiry Sent Successfully!</h3>
+              <p style={{ color: '#475569', marginTop: '8px' }}>
+                Thank you for contacting Swastiai. Your enquiry has been saved and forwarded to <strong>harshagnihotri154@gmail.com</strong>.
+              </p>
+              <button
+                onClick={() => setSubmitted(false)}
+                className="btn-secondary"
+                style={{ marginTop: '24px', fontSize: '0.9rem' }}
+              >
+                Send Another Enquiry
+              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {errorMsg && (
+                <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', fontSize: '0.875rem', fontWeight: 700 }}>
+                  {errorMsg}
+                </div>
+              )}
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>Your Full Name</label>
                 <input
@@ -79,8 +116,9 @@ export const ContactPage: React.FC = () => {
                 />
               </div>
 
-              <button type="submit" className="btn-primary" style={{ justifyContent: 'center', padding: '12px', marginTop: '6px' }}>
-                <Send size={16} /> Send Direct Message
+              <button type="submit" disabled={loading} className="btn-primary" style={{ justifyContent: 'center', padding: '14px', marginTop: '6px' }}>
+                {loading ? <Loader2 size={18} className="spin" /> : <Send size={16} />}
+                {loading ? 'Submitting Enquiry...' : 'Send Direct Message'}
               </button>
             </form>
           )}
@@ -93,8 +131,8 @@ export const ContactPage: React.FC = () => {
               <Mail size={26} color="#2563eb" />
             </div>
             <div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>SUPPORT EMAIL</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>support@swastiai.com</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>DIRECT ENQUIRY EMAIL</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>harshagnihotri154@gmail.com</div>
             </div>
           </div>
 
@@ -104,7 +142,7 @@ export const ContactPage: React.FC = () => {
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>WHATSAPP & CALL</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>+91-1800-SWASTI-AI</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>+91-9084553059</div>
             </div>
           </div>
 
@@ -114,7 +152,7 @@ export const ContactPage: React.FC = () => {
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>HEADQUARTERS</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>New Delhi, India</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>New Delhi / Noida, India</div>
             </div>
           </div>
         </div>

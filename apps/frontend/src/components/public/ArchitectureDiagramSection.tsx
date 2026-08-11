@@ -69,22 +69,19 @@ export const ArchitectureDiagramSection: React.FC<ArchitectureDiagramSectionProp
         {/* Section Headline */}
         <div style={{ textAlign: 'center', maxWidth: '860px', margin: '0 auto 56px' }}>
           <h2 style={{
-            fontSize: '2.8rem',
+            fontSize: 'clamp(1.65rem, 5vw, 2.8rem)',
             fontWeight: 800,
             color: '#000000',
-            lineHeight: 1.25,
+            lineHeight: 1.3,
             letterSpacing: '-0.03em',
             margin: 0
           }}>
-            Generic AI tools cause more headaches<br />
-            than they solve. We build AI agents<br />
-            specifically for your business processes,<br />
-            workflows, and objectives.
+            Generic AI tools cause more headaches than they solve. We build AI agents specifically for your business processes, workflows, and objectives.
           </h2>
         </div>
 
         {/* Interactive Diagram Container */}
-        <div style={{
+        <div className="arch-diagram-grid" style={{
           position: 'relative',
           display: 'grid',
           gridTemplateColumns: '320px 1fr 340px',

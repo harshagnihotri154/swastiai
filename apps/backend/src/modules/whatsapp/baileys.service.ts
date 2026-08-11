@@ -51,7 +51,9 @@ export class BaileysService {
    */
   static clearStaleSession(): void {
     try {
-      const authFolder = path.join(process.cwd(), "baileys_auth_info");
+      const authFolder = process.env.VERCEL
+        ? path.join("/tmp", "baileys_auth_info")
+        : path.join(process.cwd(), "baileys_auth_info");
       if (fs.existsSync(authFolder)) {
         fs.rmSync(authFolder, { recursive: true, force: true });
         console.log("🧹 Cleared stale Baileys auth session files.");
@@ -70,7 +72,9 @@ export class BaileysService {
         this.clearStaleSession();
       }
 
-      const authFolder = path.join(process.cwd(), "baileys_auth_info");
+      const authFolder = process.env.VERCEL
+        ? path.join("/tmp", "baileys_auth_info")
+        : path.join(process.cwd(), "baileys_auth_info");
       const { state, saveCreds } = await useMultiFileAuthState(authFolder);
 
       this.sock = makeWASocket({

@@ -33,7 +33,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      let data: any = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        throw new Error(text.substring(0, 120) || `Server error (${res.status})`);
+      }
+
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Authentication failed');
       }

@@ -106,7 +106,7 @@ export class AuthController {
     try {
       const user = await UserModel.findById(req.userId).select("-passwordHash");
       if (!user) {
-        return res.status(44).json({ success: false, error: "User not found" });
+        return res.status(404).json({ success: false, error: "User not found" });
       }
 
       return res.status(200).json({

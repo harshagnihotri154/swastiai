@@ -12,8 +12,10 @@ import { BaileysService } from "../modules/whatsapp/baileys.service";
 
 const router = Router();
 
-// Initialize Baileys Socket Engine asynchronously
-BaileysService.initSession().catch((err) => console.log("Baileys Init Notice:", err.message));
+// Initialize Baileys Socket Engine asynchronously in persistent server environments
+if (!process.env.VERCEL) {
+  BaileysService.initSession().catch((err) => console.log("Baileys Init Notice:", err.message));
+}
 
 router.get("/health", (_req, res) => {
   res.json({

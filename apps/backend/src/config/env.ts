@@ -10,7 +10,12 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
-  MONGODB_URI: z.string().min(1, "MongoDB URI is required"),
+  MONGODB_URI: z
+    .string()
+    .optional()
+    .default(
+      "mongodb+srv://SWASTIAI:oR51VlyaXzMPuzPh@swastiai.twpfqmo.mongodb.net/?appName=SWASTIAI"
+    ),
 
   WHATSAPP_ACCESS_TOKEN: z.string().optional().default(""),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional().default(""),

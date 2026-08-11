@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react';
 
 interface PublicHeaderProps {
-  activePage: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact';
-  setActivePage: (page: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact') => void;
+  activePage: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact' | 'privacy';
+  setActivePage: (page: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact' | 'privacy') => void;
   onOpenAuth: () => void;
   onGoToDashboard: () => void;
   isLoggedIn: boolean;
@@ -18,7 +18,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleNavClick = (page: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact') => {
+  const handleNavClick = (page: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact' | 'privacy') => {
     setActivePage(page);
     setMobileMenuOpen(false);
   };

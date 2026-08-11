@@ -6,6 +6,7 @@ import { ServicesPage } from './public/ServicesPage';
 import { AboutPage } from './public/AboutPage';
 import { PricingPage } from './public/PricingPage';
 import { ContactPage } from './public/ContactPage';
+import { PrivacyPolicyPage } from './public/PrivacyPolicyPage';
 import { HowToUseView } from './HowToUseView';
 import { ArchitectureDiagramSection } from './public/ArchitectureDiagramSection';
 
@@ -16,7 +17,7 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDashboard, isLoggedIn }) => {
-  const [activePage, setActivePage] = useState<'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact' | 'privacy'>('home');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   // ROI Calculator State
@@ -620,11 +621,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
           </div>
         )}
 
-        {activePage === 'about' && <AboutPage />}
+        {activePage === 'about' && <AboutPage onOpenAuth={onOpenAuth} />}
 
         {activePage === 'pricing' && <PricingPage onOpenAuth={onOpenAuth} />}
 
         {activePage === 'contact' && <ContactPage />}
+
+        {activePage === 'privacy' && <PrivacyPolicyPage />}
       </main>
 
       {/* Footer */}

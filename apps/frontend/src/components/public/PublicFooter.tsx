@@ -2,7 +2,7 @@ import React from 'react';
 import { Bot, Send, Heart } from 'lucide-react';
 
 interface PublicFooterProps {
-  setActivePage: (page: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact') => void;
+  setActivePage: (page: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact' | 'privacy') => void;
 }
 
 export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage }) => {
@@ -58,7 +58,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage }) => 
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
             <li><button onClick={() => setActivePage('about')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontWeight: 600 }}>About Us</button></li>
             <li><button onClick={() => setActivePage('contact')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Contact Team</button></li>
-            <li><a href="/privacy" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 600 }}>Privacy Policy</a></li>
+            <li><button onClick={() => setActivePage('privacy')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Privacy Policy</button></li>
             <li><span style={{ color: '#94a3b8', fontWeight: 600 }}>Terms of Service</span></li>
           </ul>
         </div>

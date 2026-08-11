@@ -23,7 +23,6 @@ export const LiveInboxView: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [activeContact, setActiveContact] = useState<string>('');
   const [replyText, setReplyText] = useState('');
-  const [isHumanTakeover, setIsHumanTakeover] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchRealConversations = async () => {
@@ -46,7 +45,7 @@ export const LiveInboxView: React.FC = () => {
             lastMsg: last ? last.content : 'No messages',
             time: last && last.time ? last.time : 'Just now',
             unread: 0,
-            isHuman: false,
+            isHuman: !!c.isPaused,
             messages: formattedMsgs
           };
         });
@@ -96,15 +95,23 @@ export const LiveInboxView: React.FC = () => {
     messages: []
   };
 
-  const handleToggleTakeover = () => {
+  const handleToggleTakeover = async () => {
+    const nextPaused = !currentConv.isHuman;
     const updated = conversations.map(c => {
       if (c.phone === activeContact) {
-        return { ...c, isHuman: !c.isHuman };
+        return { ...c, isHuman: nextPaused };
       }
       return c;
     });
     setConversations(updated);
-    setIsHumanTakeover(!isHumanTakeover);
+
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/whatsapp/toggle-pause`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: activeContact, isPaused: nextPaused })
+      });
+    } catch (err) {}
   };
 
   const handleSendReply = async (e: React.FormEvent) => {
@@ -184,7 +191,7 @@ export const LiveInboxView: React.FC = () => {
               return (
                 <div
                   key={c.phone}
-                  onClick={() => { setActiveContact(c.phone); setIsHumanTakeover(c.isHuman); }}
+                  onClick={() => setActiveContact(c.phone)}
                   style={{
                     padding: '16px',
                     borderBottom: '1px solid #f1f5f9',

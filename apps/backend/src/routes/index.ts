@@ -201,19 +201,8 @@ router.post("/credentials/save", async (req, res) => {
 });
 
 // 📱 REAL WhatsApp Web QR Code Endpoint (Powered by Baileys Socket)
-router.get("/whatsapp/qr-code", async (_req, res) => {
-  let qrImage = BaileysService.getQR();
-  if (!qrImage) {
-    try {
-      qrImage = await QRCode.toDataURL("https://swastiai.vercel.app/connect-whatsapp?t=" + Date.now(), { margin: 1 });
-    } catch (e) {
-      // Guaranteed fallback PNG QR Code data URL
-      qrImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASQAAAEkCAYAAAC...";
-    }
-  }
-  if (!qrImage) {
-    qrImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASQAAAEkCAYAAAC...";
-  }
+router.get("/whatsapp/qr-code", (_req, res) => {
+  const qrImage = BaileysService.getQR();
   const pairingCode = BaileysService.getPairingCode() || "7492-3819";
   const status = BaileysService.getStatus();
 
@@ -222,7 +211,7 @@ router.get("/whatsapp/qr-code", async (_req, res) => {
     data: {
       qrDataUrl: qrImage,
       pairingCode: pairingCode,
-      status: status === "CONNECTED" ? "CONNECTED" : "SCAN_READY",
+      status: status,
       activePhone: BaileysService.getActivePhone()
     }
   });
@@ -313,6 +302,35 @@ router.get("/whatsapp/conversations", async (req, res) => {
     res.json({ success: true, conversations });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ⏸️ Toggle AI Agent Pause / Resume for a Specific Phone Number
+router.post("/whatsapp/toggle-pause", async (req, res) => {
+  try {
+    const { phone, isPaused } = req.body;
+    if (!phone) {
+      return res.status(400).json({ success: false, error: "Phone number is required" });
+    }
+
+    let conversation = await ConversationModel.findOne({ customerPhone: phone });
+    if (!conversation) {
+      conversation = new ConversationModel({ customerPhone: phone, messages: [], isPaused: isPaused !== undefined ? !!isPaused : true });
+    } else {
+      conversation.isPaused = isPaused !== undefined ? !!isPaused : !conversation.isPaused;
+    }
+
+    await conversation.save();
+    console.log(`⏸️ AI Agent for phone ${phone} is now ${conversation.isPaused ? "PAUSED" : "ACTIVE"}`);
+
+    return res.json({
+      success: true,
+      phone,
+      isPaused: conversation.isPaused,
+      message: conversation.isPaused ? "AI Agent paused for this number." : "AI Agent resumed for this number."
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 

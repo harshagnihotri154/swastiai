@@ -173,7 +173,14 @@ export class BaileysService {
 
           let conversation = await ConversationModel.findOne({ customerPhone: senderPhone });
           if (!conversation) {
-            conversation = new ConversationModel({ customerPhone: senderPhone, messages: [] });
+            conversation = new ConversationModel({ customerPhone: senderPhone, messages: [], isPaused: false });
+          }
+
+          if (conversation.isPaused) {
+            console.log(`⏸️ AI Agent is PAUSED for ${senderPhone}. Skipping automated AI reply.`);
+            conversation.messages.push({ role: "user", content: text, timestamp: new Date() });
+            await conversation.save();
+            continue;
           }
 
           const historyContext = conversation.messages.slice(-6).map((item) => ({

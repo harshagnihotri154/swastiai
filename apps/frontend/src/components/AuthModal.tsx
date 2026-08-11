@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Bot, Mail, Lock, User, ArrowRight, X } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     const payload = isLogin ? { email, password } : { email, password, name };
 
     try {
-      const res = await fetch(`http://localhost:5001${endpoint}`, {
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

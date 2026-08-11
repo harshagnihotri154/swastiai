@@ -65,7 +65,7 @@ app.get("/test-ai", (_req, res) => {
           <p>Type any question below. Groq Llama 3.3 AI will process it and send the reply straight to your WhatsApp phone!</p>
           
           <label>Your WhatsApp Phone Number (with Country Code):</label>
-          <input type="text" id="phone" placeholder="Enter your WhatsApp number (e.g. 919084553059)" value="919084553059" />
+          <input type="text" id="phone" placeholder="Enter your WhatsApp number (e.g. 919876543210)" value="" />
 
           <label>Your Question for Swastiai AI:</label>
           <textarea id="question" rows="3" placeholder="e.g. What are 3 top strategies for growing an AI SaaS?"></textarea>

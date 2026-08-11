@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from './config/api';
 import { LandingPage } from './components/LandingPage';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
@@ -11,18 +12,42 @@ import { HowToUseView } from './components/HowToUseView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { LiveInboxView } from './components/LiveInboxView';
 import { AuthModal } from './components/AuthModal';
+import { OnboardingWizardModal } from './components/OnboardingWizardModal';
 
 export function App() {
-  const [viewMode, setViewMode] = useState<'home' | 'dashboard'>('home');
-  const [activeTab, setActiveTab] = useState('overview');
+  // Initialize viewMode and activeTab from localStorage to persist across browser refresh
+  const [viewMode, setViewMode] = useState<'home' | 'dashboard'>(() => {
+    const savedMode = localStorage.getItem('swastiai_view_mode');
+    if (savedMode === 'dashboard' || savedMode === 'home') {
+      return savedMode;
+    }
+    const token = localStorage.getItem('swastiai_token');
+    return token ? 'dashboard' : 'home';
+  });
+
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('swastiai_active_tab') || 'overview';
+  });
+
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  // Sync state changes to localStorage
+  const changeViewMode = (mode: 'home' | 'dashboard') => {
+    setViewMode(mode);
+    localStorage.setItem('swastiai_view_mode', mode);
+  };
+
+  const changeActiveTab = (tab: string) => {
+    setActiveTab(tab);
+    localStorage.setItem('swastiai_active_tab', tab);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('swastiai_token');
     if (token) {
-      // Check stored user profile
-      fetch('http://localhost:5001/api/v1/auth/me', {
+      fetch(`${API_BASE_URL}/api/v1/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then((res) => res.json())
@@ -37,13 +62,22 @@ export function App() {
 
   const handleAuthSuccess = (userData: any) => {
     setUser(userData);
-    setViewMode('dashboard'); // Post-login/signup flow: automatically land on Dashboard!
+    changeViewMode('dashboard');
+    setIsWizardOpen(true); // Automatically trigger 60-Second Setup Wizard post signup!
   };
 
   const handleLogout = () => {
     localStorage.removeItem('swastiai_token');
+    localStorage.removeItem('swastiai_view_mode');
+    localStorage.removeItem('swastiai_active_tab');
     setUser(null);
-    setViewMode('home'); // Sign out flow: return to Public Home screen
+    changeViewMode('home');
+  };
+
+  const handleWizardComplete = (wizardData: any) => {
+    setIsWizardOpen(false);
+    changeActiveTab('overview');
+    alert(`🎉 Setup Complete! Your WhatsApp AI Employee '${wizardData.agentName || "Harsh Agnihotri"}' is live!`);
   };
 
   return (
@@ -51,13 +85,13 @@ export function App() {
       {viewMode === 'home' ? (
         <LandingPage
           onOpenAuth={() => setIsAuthOpen(true)}
-          onGoToDashboard={() => setViewMode('dashboard')}
+          onGoToDashboard={() => changeViewMode('dashboard')}
           isLoggedIn={!!user}
         />
       ) : (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-dark)' }}>
           {/* Sidebar Navigation */}
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <Sidebar activeTab={activeTab} setActiveTab={changeActiveTab} />
 
           {/* Main Content Area */}
           <div style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column' }}>
@@ -68,8 +102,10 @@ export function App() {
             <main style={{ marginTop: '70px', padding: '32px', flex: 1 }}>
               {activeTab === 'overview' && (
                 <DashboardOverview
-                  onNavigateToKnowledge={() => setActiveTab('knowledge')}
-                  onNavigateToConfig={() => setActiveTab('agent')}
+                  onNavigateToKnowledge={() => changeActiveTab('knowledge')}
+                  onNavigateToConfig={() => changeActiveTab('agent')}
+                  onLaunchWizard={() => setIsWizardOpen(true)}
+                  user={user}
                 />
               )}
 
@@ -79,9 +115,9 @@ export function App() {
 
               {activeTab === 'guide' && (
                 <HowToUseView
-                  onNavigateToConfig={() => setActiveTab('agent')}
-                  onNavigateToKnowledge={() => setActiveTab('knowledge')}
-                  onNavigateToKeys={() => setActiveTab('keys')}
+                  onNavigateToConfig={() => changeActiveTab('agent')}
+                  onNavigateToKnowledge={() => changeActiveTab('knowledge')}
+                  onNavigateToKeys={() => changeActiveTab('keys')}
                 />
               )}
 
@@ -102,6 +138,13 @@ export function App() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={handleAuthSuccess}
+      />
+
+      {/* Onboarding 3-Step Setup Wizard Modal */}
+      <OnboardingWizardModal
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        onComplete={handleWizardComplete}
       />
     </>
   );

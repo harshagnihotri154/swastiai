@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Bot, Key, History, BookOpen, HelpCircle, BarChart3, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Bot, Key, History, HelpCircle, BarChart3, MessageSquare } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -8,14 +8,13 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'inbox', label: 'Live Inbox & Handover', icon: MessageSquare },
-    { id: 'analytics', label: 'AI Analytics & ROI', icon: BarChart3 },
-    { id: 'guide', label: 'How to Use Guide', icon: HelpCircle },
-    { id: 'agent', label: 'AI Agent Config', icon: Bot },
-    { id: 'knowledge', label: 'Knowledge & MCP', icon: BookOpen },
-    { id: 'keys', label: 'API Keys & Webhooks', icon: Key },
-    { id: 'logs', label: 'Message Logs', icon: History },
+    { id: 'overview', label: '📊 Dashboard Overview', icon: LayoutDashboard },
+    { id: 'agent', label: '🤖 Agent Configurator', icon: Bot },
+    { id: 'keys', label: '🔑 Credentials Manager', icon: Key },
+    { id: 'inbox', label: '💬 Live Inbox & Handover', icon: MessageSquare },
+    { id: 'analytics', label: '📈 AI Analytics & ROI', icon: BarChart3 },
+    { id: 'guide', label: '❓ How to Use Guide', icon: HelpCircle },
+    { id: 'logs', label: '📜 Live Message Logs', icon: History },
   ];
 
   return (
@@ -54,10 +53,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
       </div>
 
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+
           return (
             <button
               key={item.id}
@@ -66,24 +66,41 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: '11px 16px',
+                padding: '12px 14px',
                 borderRadius: '12px',
                 border: 'none',
-                backgroundColor: isActive ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
-                color: isActive ? '#2563eb' : '#64748b',
-                fontWeight: isActive ? 800 : 600,
+                backgroundColor: isActive ? '#2563eb' : 'transparent',
+                color: isActive ? '#ffffff' : '#475569',
                 fontSize: '0.875rem',
+                fontWeight: isActive ? 800 : 600,
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
+                transition: 'all 0.2s ease',
                 textAlign: 'left'
               }}
             >
-              <Icon size={18} color={isActive ? '#2563eb' : '#64748b'} />
+              <Icon size={18} color={isActive ? '#ffffff' : '#64748b'} />
               {item.label}
             </button>
           );
         })}
       </nav>
+
+      {/* Bottom Footer Status Badge */}
+      <div style={{
+        padding: '12px 14px',
+        borderRadius: '12px',
+        background: '#f8fafc',
+        border: '1px solid #e2e8f0',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '0.75rem',
+        fontWeight: 700,
+        color: '#059669'
+      }}>
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', boxShadow: '0 0 8px #059669' }} />
+        Groq Engine v1.0 Active
+      </div>
     </aside>
   );
 };

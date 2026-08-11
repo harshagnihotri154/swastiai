@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Send, Smartphone, Bot, CheckCheck, RefreshCw, Zap } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 interface ChatMessage {
   id: string;
@@ -48,7 +49,7 @@ export const LivePlayground: React.FC = () => {
 
     try {
       // Call backend API /api/v1/whatsapp/ask-ai
-      const res = await fetch('http://localhost:5001/api/v1/whatsapp/ask-ai', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/whatsapp/ask-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,7 +73,7 @@ export const LivePlayground: React.FC = () => {
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: '⚠️ Network error communicating with Swastiai Backend. Ensure http://localhost:5001 is running.',
+        text: `⚠️ Network error communicating with Swastiai Backend (${API_BASE_URL}).`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'Error'
       };

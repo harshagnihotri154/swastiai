@@ -7,20 +7,21 @@ export interface MessageContext {
 
 export class AIService {
   /**
-   * Generate AI response using Gemini API (Free Tier), OpenAI API, or intelligent fallback
+   * Generate AI response enforcing ultra-short WhatsApp responses
    */
   static async generateReply(
     userMessage: string,
     systemPrompt?: string,
     history: MessageContext[] = []
   ): Promise<string> {
-    const prompt = systemPrompt || env.DEFAULT_SYSTEM_PROMPT;
+    const rawPrompt = systemPrompt || env.DEFAULT_SYSTEM_PROMPT;
+    const concisePrompt = `${rawPrompt}\n\n[CRITICAL WHATSAPP FORMAT RULE]: Be extremely brief, crisp, and direct (max 1 to 3 short sentences). Avoid long explanations.`;
 
     // 1. Try Groq API (100% Free Llama 3.3 - Zero Credit Card Required!)
     const groqKey = env.GROQ_API_KEY || process.env.GROQ_API_KEY;
     if (groqKey) {
       try {
-        return await this.generateGroqReply(userMessage, prompt, groqKey, history);
+        return await this.generateGroqReply(userMessage, concisePrompt, groqKey, history);
       } catch (err) {
         console.error("⚠️ Groq API Error, attempting fallback:", err);
       }
@@ -30,7 +31,7 @@ export class AIService {
     const geminiKey = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
     if (geminiKey) {
       try {
-        return await this.generateGeminiReply(userMessage, prompt, geminiKey, history);
+        return await this.generateGeminiReply(userMessage, concisePrompt, geminiKey, history);
       } catch (err) {
         console.error("⚠️ Gemini API Error, attempting fallback:", err);
       }
@@ -40,14 +41,14 @@ export class AIService {
     const openAiKey = env.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
     if (openAiKey) {
       try {
-        return await this.generateOpenAIReply(userMessage, prompt, openAiKey, history);
+        return await this.generateOpenAIReply(userMessage, concisePrompt, openAiKey, history);
       } catch (err) {
         console.error("⚠️ OpenAI API Error, attempting fallback:", err);
       }
     }
 
     // 4. Fallback Smart Response if no API key set yet
-    return `Hello! 👋 Thank you for contacting Swastiai. I received your message: "${userMessage}".\n\n(To enable real AI generation, please set GROQ_API_KEY, GEMINI_API_KEY or OPENAI_API_KEY in your .env file).`;
+    return `Hello! 👋 Thanks for messaging Swastiai. Received: "${userMessage}".`;
   }
 
   private static async generateGroqReply(
@@ -73,7 +74,8 @@ export class AIService {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages,
-        temperature: 0.7,
+        temperature: 0.5,
+        max_tokens: 120
       }),
     });
 
@@ -91,7 +93,7 @@ export class AIService {
     apiKey: string,
     history: MessageContext[] = []
   ): Promise<string> {
-    const candidateModels = ["gemini-2.5-computer-use-preview-10-2025", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash"];
+    const candidateModels = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
 
     const contents = [
       {
@@ -148,7 +150,8 @@ export class AIService {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages,
-        temperature: 0.7,
+        temperature: 0.5,
+        max_tokens: 120
       }),
     });
 

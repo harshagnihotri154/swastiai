@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Send, CheckCheck, RefreshCw, ShieldCheck, ChevronDown, ChevronUp, Star, Upload, MessageSquare, Sparkles, DollarSign, Clock } from 'lucide-react';
+import { ArrowRight, ShieldCheck, ChevronDown, ChevronUp, Star, MessageSquare, Sparkles, DollarSign, Clock, Play, CheckCircle2, Gift, XCircle, Zap, BookOpen, Database, Code, Cloud, Globe, Users, Bot } from 'lucide-react';
 import { PublicHeader } from './public/PublicHeader';
 import { PublicFooter } from './public/PublicFooter';
 import { ServicesPage } from './public/ServicesPage';
@@ -18,50 +18,9 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDashboard, isLoggedIn }) => {
   const [activePage, setActivePage] = useState<'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact'>('home');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [demoTab, setDemoTab] = useState<'chat' | 'knowledge' | 'provider'>('chat');
 
   // ROI Calculator State
   const [monthlyInquiries, setMonthlyInquiries] = useState<number>(5000);
-
-  // Live Web Chat Simulator State (Max 2 Demo Messages per Visitor)
-  const [demoCount, setDemoCount] = useState(0);
-  const [heroPrompt, setHeroPrompt] = useState('');
-  const [heroLoading, setHeroLoading] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { role: 'user', content: 'Hi Swastiai! How can you help my business grow?' },
-    { role: 'ai', content: 'Hello! 👋 I am your 24/7 AI Business Assistant. I answer customer questions in 0.12 seconds, qualify leads, recommend products, and book appointments automatically on WhatsApp!' }
-  ]);
-
-  const handleSendHeroChat = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!heroPrompt.trim() || heroLoading) return;
-
-    if (demoCount >= 2) {
-      alert("🎉 You've used your 2 free demo questions! Sign up to deploy your custom business AI Agent.");
-      onOpenAuth();
-      return;
-    }
-
-    const userText = heroPrompt.trim();
-    setHeroPrompt('');
-    setChatMessages((prev) => [...prev, { role: 'user', content: userText }]);
-    setHeroLoading(true);
-    setDemoCount((prev) => prev + 1);
-
-    try {
-      const res = await fetch('http://localhost:5001/api/v1/whatsapp/ask-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: userText })
-      });
-      const data = await res.json();
-      setChatMessages((prev) => [...prev, { role: 'ai', content: data.aiReply || 'Hello! Thank you for contacting Swastiai.' }]);
-    } catch (err: any) {
-      setChatMessages((prev) => [...prev, { role: 'ai', content: 'Hello! I am Swastiai AI Assistant powered by Groq Llama 3.3. How can I help your business today?' }]);
-    } finally {
-      setHeroLoading(false);
-    }
-  };
 
   const faqs = [
     {
@@ -122,202 +81,350 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onGoToDash
       <main style={{ minHeight: 'calc(100vh - 76px - 200px)' }}>
         {activePage === 'home' && (
           <>
-            {/* World-Class Stunning Hero Section */}
-            <section style={{ padding: '100px 24px 80px', textAlign: 'center', maxWidth: '1280px', margin: '0 auto', position: 'relative' }}>
-              {/* Soft Multi-Tone Animated Ambient Light Mesh */}
-              <div style={{ position: 'absolute', top: '5%', left: '20%', width: '550px', height: '450px', background: 'radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(2, 132, 199, 0.08) 50%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', top: '15%', right: '20%', width: '500px', height: '400px', background: 'radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, rgba(219, 39, 119, 0.06) 50%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
+            {/* World-Class Stunning Hero Section matching exact screenshot */}
+            <section style={{
+              padding: '70px 48px 60px',
+              maxWidth: '1280px',
+              margin: '0 auto',
+              position: 'relative'
+            }}>
+              {/* Background Ambient Soft Light Mesh */}
+              <div style={{ position: 'absolute', top: '0%', left: '30%', width: '600px', height: '500px', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-              {/* Floating Pill Badge */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '8px 22px', borderRadius: '30px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', color: '#2563eb', fontSize: '0.875rem', fontWeight: 800, marginBottom: '32px', boxShadow: '0 4px 20px rgba(37, 99, 235, 0.1)' }}>
-                <div className="pulse-dot" /> 🟢 Live Meta & Interakt Gateway • ⚡ 0.12s Ultra-Fast Groq AI
-              </div>
-
-              {/* Giant Impact Headline */}
-              <h1 style={{ fontSize: '4.8rem', fontWeight: 900, lineHeight: 1.06, letterSpacing: '-0.04em', color: '#0f172a', marginBottom: '28px', maxWidth: '1120px', margin: '0 auto 28px' }}>
-                Automate WhatsApp Sales & Support <br />
-                With <span style={{ background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 40%, #7c3aed 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>24/7 Intelligent AI Agents</span>
-              </h1>
-
-              <p style={{ fontSize: '1.3rem', color: '#475569', lineHeight: 1.65, maxWidth: '880px', margin: '0 auto 48px', fontWeight: 500 }}>
-                Turn every WhatsApp conversation into revenue. Swastiai trains custom AI Assistants on your business PDFs & APIs to handle support, book appointments, and close sales automatically.
-              </p>
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '80px' }}>
-                <button onClick={isLoggedIn ? onGoToDashboard : onOpenAuth} className="btn-primary" style={{ padding: '20px 48px', fontSize: '1.2rem', borderRadius: '14px' }}>
-                  {isLoggedIn ? 'Go to Dashboard' : 'Deploy Your AI Agent Now'} <ArrowRight size={22} />
-                </button>
-                <button onClick={() => setActivePage('services')} className="btn-secondary" style={{ padding: '20px 36px', fontSize: '1.2rem', borderRadius: '14px' }}>
-                  Explore Industry Demos
-                </button>
-              </div>
-
-              {/* Sleek Smartphone Mockup Hub */}
               <div style={{
-                background: '#ffffff',
-                borderRadius: '36px',
-                border: '1px solid #cbd5e1',
-                boxShadow: '0 30px 90px rgba(0,0,0,0.1), 0 0 50px rgba(37, 99, 235, 0.12)',
-                maxWidth: '840px',
-                margin: '0 auto',
-                overflow: 'hidden',
-                textAlign: 'left',
-                position: 'relative',
-                zIndex: 10
+                display: 'grid',
+                gridTemplateColumns: '1.05fr 1fr',
+                alignItems: 'center',
+                gap: '40px',
+                minHeight: '520px'
               }}>
-                {/* Smartphone Device Notch Header */}
-                <div style={{ background: '#f1f5f9', padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+
+                {/* LEFT COLUMN: Headline & Action Controls */}
+                <div style={{ textAlign: 'left', zIndex: 10 }}>
+                  {/* Top Pill Badge matching SS */}
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '30px',
+                    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                    color: '#6366f1',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    marginBottom: '28px'
+                  }}>
+                    <span>★</span> AI that works. Intelligence that delivers.
+                  </div>
+
+                  {/* Massive Hero Headline matching SS typography */}
+                  <h1 style={{
+                    fontSize: '3.6rem',
+                    fontWeight: 900,
+                    lineHeight: 1.15,
+                    letterSpacing: '-0.035em',
+                    color: '#000000',
+                    marginBottom: '24px'
+                  }}>
+                    Build smarter.<br />
+                    Automate <span style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>everything.</span><br />
+                    Scale <span style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>limitlessly.</span>
+                  </h1>
+
+                  <p style={{
+                    fontSize: '1.15rem',
+                    color: '#64748b',
+                    lineHeight: 1.6,
+                    maxWidth: '520px',
+                    marginBottom: '36px',
+                    fontWeight: 500
+                  }}>
+                    SWASTIAI is your all-in-one AI workspace to build, deploy and scale intelligent agents that work 24/7 to grow your business.
+                  </p>
+
+                  {/* CTA Action Buttons matching SS */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
                     <button
-                      onClick={() => setDemoTab('chat')}
+                      onClick={isLoggedIn ? onGoToDashboard : onOpenAuth}
                       style={{
-                        padding: '9px 18px',
-                        borderRadius: '12px',
-                        border: demoTab === 'chat' ? '1px solid #2563eb' : '1px solid transparent',
-                        background: demoTab === 'chat' ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
-                        color: demoTab === 'chat' ? '#2563eb' : '#64748b',
+                        padding: '16px 36px',
+                        borderRadius: '30px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        color: '#ffffff',
                         fontWeight: 800,
-                        fontSize: '0.875rem',
+                        fontSize: '1.05rem',
                         cursor: 'pointer',
+                        boxShadow: '0 10px 25px rgba(99, 102, 241, 0.35)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '10px'
                       }}
                     >
-                      <MessageSquare size={16} /> 💬 Live Chat Simulator
+                      {isLoggedIn ? 'Go to Dashboard' : 'Get Started Free'} <ArrowRight size={18} />
                     </button>
 
                     <button
-                      onClick={() => setDemoTab('knowledge')}
+                      onClick={() => setActivePage('contact')}
                       style={{
-                        padding: '9px 18px',
-                        borderRadius: '12px',
-                        border: demoTab === 'knowledge' ? '1px solid #7c3aed' : '1px solid transparent',
-                        background: demoTab === 'knowledge' ? 'rgba(124, 58, 237, 0.1)' : 'transparent',
-                        color: demoTab === 'knowledge' ? '#7c3aed' : '#64748b',
-                        fontWeight: 800,
-                        fontSize: '0.875rem',
+                        padding: '15px 30px',
+                        borderRadius: '30px',
+                        border: '1px solid #cbd5e1',
+                        background: '#ffffff',
+                        color: '#0f172a',
+                        fontWeight: 700,
+                        fontSize: '1rem',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '8px'
                       }}
                     >
-                      <Upload size={16} /> 📄 PDF Knowledge RAG
-                    </button>
-
-                    <button
-                      onClick={() => setDemoTab('provider')}
-                      style={{
-                        padding: '9px 18px',
-                        borderRadius: '12px',
-                        border: demoTab === 'provider' ? '1px solid #059669' : '1px solid transparent',
-                        background: demoTab === 'provider' ? 'rgba(5, 150, 105, 0.1)' : 'transparent',
-                        color: demoTab === 'provider' ? '#059669' : '#64748b',
-                        fontWeight: 800,
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <ShieldCheck size={16} /> 🔌 Meta & Interakt Gateway
+                      Book a Demo <Play size={16} fill="#0f172a" color="#0f172a" />
                     </button>
                   </div>
 
-                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: demoCount >= 2 ? '#dc2626' : '#2563eb', padding: '6px 14px', borderRadius: '16px', background: 'rgba(37, 99, 235, 0.1)', border: '1px solid rgba(37, 99, 235, 0.25)' }}>
-                    {demoCount >= 2 ? 'Demo Limit Reached' : `Demo Questions: ${demoCount}/2`}
+                  {/* Trust Checkmarks matching SS */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle2 size={16} color="#6366f1" /> No Credit Card
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Gift size={16} color="#6366f1" /> Free Forever Plan
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <XCircle size={16} color="#6366f1" /> Cancel Anytime
+                    </span>
                   </div>
                 </div>
 
-                {/* Tab 1: Live Chat Simulator */}
-                {demoTab === 'chat' && (
-                  <div>
-                    <div style={{ padding: '24px', height: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', background: '#efeae2' }}>
-                      {chatMessages.map((msg, index) => {
-                        const isUser = msg.role === 'user';
-                        return (
-                          <div
-                            key={index}
-                            style={{
-                              alignSelf: isUser ? 'flex-end' : 'flex-start',
-                              maxWidth: '82%',
-                              background: isUser ? '#d9fdd3' : '#ffffff',
-                              color: '#111b21',
-                              padding: '12px 16px',
-                              borderRadius: isUser ? '14px 0 14px 14px' : '0 14px 14px 14px',
-                              fontSize: '0.925rem',
-                              lineHeight: 1.55,
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
-                            }}
-                          >
-                            {msg.content}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', fontSize: '0.65rem', color: '#667781' }}>
-                              {isUser ? <CheckCheck size={14} color="#53bdeb" /> : '⚡ Groq Llama 3.3'}
-                            </div>
-                          </div>
-                        );
-                      })}
+                {/* RIGHT COLUMN: Floating Interactive Canvas matching SS */}
+                <div style={{ position: 'relative', height: '480px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* Concentric Background Orbits */}
+                  <div style={{
+                    position: 'absolute',
+                    width: '360px',
+                    height: '360px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(99, 102, 241, 0.15)',
+                    background: 'radial-gradient(circle, rgba(99, 102, 241, 0.03) 0%, transparent 70%)'
+                  }} />
+                  <div style={{
+                    position: 'absolute',
+                    width: '260px',
+                    height: '260px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(99, 102, 241, 0.25)'
+                  }} />
 
-                      {heroLoading && (
-                        <div style={{ alignSelf: 'flex-start', background: '#ffffff', color: '#667781', padding: '10px 16px', borderRadius: '0 14px 14px 14px', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-                          <RefreshCw size={14} className="spin" /> Swastiai AI is generating answer...
-                        </div>
-                      )}
-                    </div>
-
-                    <form onSubmit={handleSendHeroChat} style={{ background: '#f0f2f5', padding: '14px', display: 'flex', gap: '10px' }}>
-                      <input
-                        type="text"
-                        value={heroPrompt}
-                        onChange={(e) => setHeroPrompt(e.target.value)}
-                        placeholder="Type any test question (e.g. What can you do for my business?)..."
-                        style={{ flex: 1, padding: '12px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: '0.9rem', outline: 'none' }}
-                      />
-                      <button type="submit" disabled={heroLoading || !heroPrompt.trim()} style={{ width: '44px', height: '44px', borderRadius: '50%', border: 'none', background: '#00a884', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        <Send size={18} />
-                      </button>
-                    </form>
+                  {/* Center Floating Giant 3D 'S' Brand Mark */}
+                  <div style={{
+                    width: '140px',
+                    height: '140px',
+                    borderRadius: '40px',
+                    background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #3b82f6 100%)',
+                    boxShadow: '0 20px 50px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(255,255,255,0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    fontWeight: 900,
+                    fontSize: '5rem',
+                    position: 'relative',
+                    zIndex: 5
+                  }}>
+                    S
                   </div>
-                )}
 
-                {/* Tab 2: Knowledge Base Document Indexer */}
-                {demoTab === 'knowledge' && (
-                  <div style={{ padding: '36px', background: '#ffffff', minHeight: '330px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ border: '2px dashed #7c3aed', padding: '28px', borderRadius: '16px', textAlign: 'center', background: 'rgba(124, 58, 237, 0.05)' }}>
-                      <Upload size={36} color="#7c3aed" style={{ margin: '0 auto 12px', display: 'block' }} />
-                      <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>Drag & Drop Business PDF, Rates or FAQ Documents</div>
-                      <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '6px' }}>Extracted text is automatically indexed into MongoDB for instant AI retrieval.</div>
+                  {/* Floating Card 1 (Top Left: AI Agent) */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '20px',
+                    left: '10px',
+                    background: '#ffffff',
+                    borderRadius: '16px',
+                    padding: '14px 20px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
+                    border: '1px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    zIndex: 10
+                  }}>
+                    <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Bot size={22} />
                     </div>
-
-                    <div style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#1e293b', fontFamily: 'monospace' }}>
-                      Indexed Entry: <span style={{ color: '#2563eb', fontWeight: 800 }}>"Business_Rates_2026.pdf"</span><br />
-                      Status: <span style={{ color: '#059669', fontWeight: 800 }}>Indexed & Active for WhatsApp RAG Search</span>
+                    <div>
+                      <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>AI Agent</div>
+                      <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700 }}>🟢 Online</div>
                     </div>
                   </div>
-                )}
 
-                {/* Tab 3: Gateway Switcher */}
-                {demoTab === 'provider' && (
-                  <div style={{ padding: '36px', background: '#ffffff', minHeight: '330px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'center' }}>
-                    <div style={{ padding: '24px', borderRadius: '16px', background: 'rgba(37, 99, 235, 0.08)', border: '2px solid #2563eb' }}>
-                      <div style={{ fontWeight: 800, color: '#2563eb', fontSize: '1.1rem', marginBottom: '8px' }}>Meta WhatsApp Cloud API</div>
-                      <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>Official Meta Graph API direct webhook connection.</p>
+                  {/* Floating Card 2 (Top Right: Automation) */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '40px',
+                    right: '0px',
+                    background: '#ffffff',
+                    borderRadius: '16px',
+                    padding: '18px 22px',
+                    boxShadow: '0 12px 35px rgba(0,0,0,0.07)',
+                    border: '1px solid #f1f5f9',
+                    zIndex: 10,
+                    minWidth: '200px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#e0e7ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Zap size={14} />
+                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>Automation</span>
                     </div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>2,340</div>
+                    <div style={{ fontSize: '0.725rem', color: '#64748b', fontWeight: 600, marginBottom: '8px' }}>Workflows Executed</div>
+                    {/* Live Sparkline Graph SVG */}
+                    <svg width="100%" height="24" viewBox="0 0 100 24" fill="none">
+                      <path d="M 0 18 Q 20 5 40 16 T 80 8 L 100 4" stroke="#3b82f6" strokeWidth="2.5" fill="none" />
+                    </svg>
+                  </div>
 
-                    <div style={{ padding: '24px', borderRadius: '16px', background: 'rgba(124, 58, 237, 0.08)', border: '2px solid #7c3aed' }}>
-                      <div style={{ fontWeight: 800, color: '#7c3aed', fontSize: '1.1rem', marginBottom: '8px' }}>Interakt WhatsApp API</div>
-                      <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>Indian WhatsApp Business API. 1-Click Secret API Key integration.</p>
+                  {/* Floating Card 3 (Bottom Left: Knowledge Base) */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '30px',
+                    left: '0px',
+                    background: '#ffffff',
+                    borderRadius: '16px',
+                    padding: '18px 22px',
+                    boxShadow: '0 12px 35px rgba(0,0,0,0.07)',
+                    border: '1px solid #f1f5f9',
+                    zIndex: 10,
+                    minWidth: '210px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <BookOpen size={14} />
+                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>Knowledge Base</span>
+                    </div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>12,548</div>
+                    <div style={{ fontSize: '0.725rem', color: '#64748b', fontWeight: 600, marginBottom: '8px' }}>Documents Indexed</div>
+                    {/* Progress Bar */}
+                    <div style={{ width: '100%', height: '6px', borderRadius: '4px', background: '#f1f5f9', overflow: 'hidden' }}>
+                      <div style={{ width: '75%', height: '100%', borderRadius: '4px', background: 'linear-gradient(90deg, #a855f7 0%, #6366f1 100%)' }} />
                     </div>
                   </div>
-                )}
+
+                  {/* Floating Micro-Badges (Bottom Right) */}
+                  <div style={{ position: 'absolute', bottom: '80px', right: '40px', display: 'flex', gap: '10px', zIndex: 10 }}>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#ffffff', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+                      <MessageSquare size={18} />
+                    </div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#ffffff', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+                      <Database size={18} />
+                    </div>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#ffffff', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
+                      <Code size={18} />
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Bottom Social Proof Header */}
+              <div style={{ marginTop: '80px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#64748b', marginBottom: '24px' }}>
+                  Trusted by innovators and teams worldwide
+                </div>
+
+                {/* Company Logos Row */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '44px',
+                  flexWrap: 'wrap',
+                  opacity: 0.7,
+                  marginBottom: '60px'
+                }}>
+                  <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}><Zap size={18} /> TechNova</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}><Cloud size={18} /> CloudSync</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}><Database size={18} /> DataFlux</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}><Bot size={18} /> InnovaHub</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}><Code size={18} /> CodeCraft</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={18} /> DigitalEdge</span>
+                </div>
+
+                {/* 4 Metric Cards Grid matching SS */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '20px',
+                  background: '#ffffff',
+                  borderRadius: '24px',
+                  padding: '28px 32px',
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 10px 35px rgba(0,0,0,0.03)'
+                }}>
+                  {/* Metric 1 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Users size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000', lineHeight: 1.1 }}>10K+</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Active Users</div>
+                      <div style={{ fontSize: '0.725rem', color: '#64748b' }}>Growing community of builders</div>
+                    </div>
+                  </div>
+
+                  {/* Metric 2 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#dcfce7', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Zap size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000', lineHeight: 1.1 }}>50K+</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>AI Workflows</div>
+                      <div style={{ fontSize: '0.725rem', color: '#64748b' }}>Automated and running 24/7</div>
+                    </div>
+                  </div>
+
+                  {/* Metric 3 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e0e7ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ShieldCheck size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000', lineHeight: 1.1 }}>99.9%</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Uptime</div>
+                      <div style={{ fontSize: '0.725rem', color: '#64748b' }}>Reliable. Secure. Always on.</div>
+                    </div>
+                  </div>
+
+                  {/* Metric 4 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#fef3c7', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Star size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000', lineHeight: 1.1 }}>4.9/5</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>User Rating</div>
+                      <div style={{ fontSize: '0.725rem', color: '#64748b' }}>Loved by creators & businesses</div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </section>
 
             {/* Interactive Working Architecture Diagram Section */}
-            <ArchitectureDiagramSection />
+            <ArchitectureDiagramSection
+              onOpenAuth={onOpenAuth}
+              onGoToDashboard={onGoToDashboard}
+              isLoggedIn={isLoggedIn}
+            />
 
             {/* Interactive ROI Calculator Section */}
             <section style={{ padding: '80px 48px', backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>

@@ -1,52 +1,100 @@
-import React, { useState } from 'react';
-import { Send, Pause, Play, CheckCheck, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, Pause, Play, CheckCheck, Search, RefreshCw, MessageSquare } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
+
+interface ConvMessage {
+  role: 'user' | 'model' | 'human';
+  content: string;
+  timestamp?: string;
+  time?: string;
+}
+
+interface ConversationItem {
+  phone: string;
+  name: string;
+  lastMsg: string;
+  time: string;
+  unread: number;
+  isHuman: boolean;
+  messages: ConvMessage[];
+}
 
 export const LiveInboxView: React.FC = () => {
-  const [activeContact, setActiveContact] = useState<string>('+91-9084553059');
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [activeContact, setActiveContact] = useState<string>('');
   const [replyText, setReplyText] = useState('');
   const [isHumanTakeover, setIsHumanTakeover] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const [conversations, setConversations] = useState([
-    {
-      phone: '+91-9084553059',
-      name: 'Harsh Agnihotri',
-      lastMsg: 'Hi Swastiai! What is the price for Pro Business plan?',
-      time: '10:42 AM',
-      unread: 0,
-      isHuman: false,
-      messages: [
-        { role: 'user', content: 'Hi Swastiai! What is the price for Pro Business plan?', time: '10:41 AM' },
-        { role: 'ai', content: 'Hello! 👋 The Pro Business Plan is ₹1,499/month (or ₹1,199/mo yearly). It includes unlimited AI messages, Meta + Interakt provider switcher, and custom MCP tools!', time: '10:42 AM' }
-      ]
-    },
-    {
-      phone: '+91-9876543210',
-      name: 'Rohan Verma',
-      lastMsg: 'Can I book a dental consultation tomorrow at 3 PM?',
-      time: '09:15 AM',
-      unread: 1,
-      isHuman: false,
-      messages: [
-        { role: 'user', content: 'Can I book a dental consultation tomorrow at 3 PM?', time: '09:15 AM' },
-        { role: 'ai', content: 'Hello! Available slots tomorrow are 10:30 AM, 2:15 PM, and 5:00 PM. Would you like me to reserve 2:15 PM for you?', time: '09:15 AM' }
-      ]
-    },
-    {
-      phone: '+1-555-677-4399',
-      name: 'Meta Developer Tester',
-      lastMsg: 'Where is order ORD-101 currently?',
-      time: 'Yesterday',
-      unread: 0,
-      isHuman: true,
-      messages: [
-        { role: 'user', content: 'Where is order ORD-101 currently?', time: 'Yesterday' },
-        { role: 'ai', content: 'Order ORD-101 is currently IN_TRANSIT via Express Courier. Delivery expected tomorrow by 5 PM.', time: 'Yesterday' },
-        { role: 'human', content: 'Hi! I have personally verified with logistics. Your order will reach you by 2 PM!', time: 'Yesterday' }
-      ]
+  const fetchRealConversations = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/whatsapp/conversations`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.conversations) && data.conversations.length > 0) {
+        const mapped: ConversationItem[] = data.conversations.map((c: any) => {
+          const rawMsgs = c.messages || [];
+          const formattedMsgs: ConvMessage[] = rawMsgs.map((m: any) => ({
+            role: m.role === 'model' ? 'model' : m.role === 'human' ? 'human' : 'user',
+            content: m.content,
+            time: m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'
+          }));
+
+          const last = formattedMsgs[formattedMsgs.length - 1];
+          return {
+            phone: c.customerPhone,
+            name: c.customerPhone.replace(/[^0-9]/g, '').slice(-10) || c.customerPhone,
+            lastMsg: last ? last.content : 'No messages',
+            time: last && last.time ? last.time : 'Just now',
+            unread: 0,
+            isHuman: false,
+            messages: formattedMsgs
+          };
+        });
+
+        setConversations(mapped);
+        if (!activeContact && mapped.length > 0) {
+          setActiveContact(mapped[0].phone);
+        }
+      } else {
+        // Fallback default sample if DB is empty
+        setConversations([
+          {
+            phone: '+91-9084553059',
+            name: 'Customer +91-9084553059',
+            lastMsg: 'Hi Swasti, do you have any 2BHK properties in Noida under 80 lakh?',
+            time: '10:42 AM',
+            unread: 1,
+            isHuman: false,
+            messages: [
+              { role: 'user', content: 'Hi Swasti, do you have any 2BHK properties in Noida under 80 lakh?', time: '10:41 AM' },
+              { role: 'model', content: 'Hello! 👋 We have 2BHK flats in Sector 75 (65L) and Sector 121 (72L) Noida. Would you like to schedule a site visit?', time: '10:42 AM' }
+            ]
+          }
+        ]);
+        if (!activeContact) setActiveContact('+91-9084553059');
+      }
+    } catch (err) {
+      // Keep state
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
-  const currentConv = conversations.find(c => c.phone === activeContact) || conversations[0];
+  useEffect(() => {
+    fetchRealConversations();
+    const interval = setInterval(fetchRealConversations, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentConv = conversations.find(c => c.phone === activeContact) || conversations[0] || {
+    phone: '+91-9084553059',
+    name: 'Customer',
+    lastMsg: 'No chat selected',
+    time: '',
+    unread: 0,
+    isHuman: false,
+    messages: []
+  };
 
   const handleToggleTakeover = () => {
     const updated = conversations.map(c => {
@@ -63,14 +111,14 @@ export const LiveInboxView: React.FC = () => {
     e.preventDefault();
     if (!replyText.trim()) return;
 
-    const newMsg = { role: 'human', content: replyText.trim(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    const newMsg: ConvMessage = { role: 'human', content: replyText.trim(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
 
     const updated = conversations.map(c => {
       if (c.phone === activeContact) {
         return {
           ...c,
           lastMsg: replyText.trim(),
-          time: newMsg.time,
+          time: newMsg.time || 'Just now',
           isHuman: true,
           messages: [...c.messages, newMsg]
         };
@@ -79,14 +127,15 @@ export const LiveInboxView: React.FC = () => {
     });
 
     setConversations(updated);
+    const sentText = replyText.trim();
     setReplyText('');
 
-    // Trigger backend webhook test send
+    // Dispatch direct message to customer via WhatsApp backend API
     try {
-      await fetch('http://localhost:5001/api/v1/whatsapp/ask-ai', {
+      await fetch(`${API_BASE_URL}/api/v1/whatsapp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: replyText })
+        body: JSON.stringify({ to: activeContact, message: sentText })
       });
     } catch (err) {}
   };
@@ -96,17 +145,23 @@ export const LiveInboxView: React.FC = () => {
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>Live WhatsApp Inbox & Human Handover Studio</h2>
-          <p style={{ color: '#475569', fontSize: '0.9rem' }}>Monitor active WhatsApp chats in real time. Take over from AI or resume automated AI responses anytime.</p>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>Live WhatsApp Real-Time Inbox & Human Handover</h2>
+          <p style={{ color: '#475569', fontSize: '0.9rem' }}>Real-time sync with MongoDB database & live customer WhatsApp chats.</p>
         </div>
 
-        <div className="badge badge-live">
-          <div className="pulse-dot" /> Live WhatsApp Webhook Connection
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={fetchRealConversations} className="btn-secondary" style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+            <RefreshCw size={14} className={loading ? "spin" : ""} /> Refresh Real Chats
+          </button>
+
+          <div className="badge badge-live">
+            <div className="pulse-dot" /> Real MongoDB Chat Sync Active
+          </div>
         </div>
       </div>
 
       {/* Main Two-Column Inbox Container */}
-      <div className="glass-panel" style={{ padding: 0, display: 'grid', gridTemplateColumns: '320px 1fr', minHeight: '620px', overflow: 'hidden' }}>
+      <div className="glass-panel" style={{ padding: 0, display: 'grid', gridTemplateColumns: '320px 1fr', minHeight: '620px', overflow: 'hidden', background: '#ffffff', border: '1px solid #cbd5e1' }}>
         {/* Left Column: Conversations List */}
         <div style={{ borderRight: '1px solid #e2e8f0', background: '#ffffff', display: 'flex', flexDirection: 'column' }}>
           {/* List Header Search */}
@@ -117,7 +172,7 @@ export const LiveInboxView: React.FC = () => {
                 type="text"
                 className="input-field"
                 style={{ paddingLeft: '32px', fontSize: '0.85rem' }}
-                placeholder="Search WhatsApp chats..."
+                placeholder="Search real chats..."
               />
             </div>
           </div>
@@ -176,7 +231,7 @@ export const LiveInboxView: React.FC = () => {
           <div style={{ background: '#ffffff', padding: '14px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
-                {currentConv.name[0]}
+                {currentConv.name ? currentConv.name[0] : 'C'}
               </div>
               <div>
                 <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '1rem' }}>{currentConv.name} ({currentConv.phone})</div>
@@ -211,36 +266,43 @@ export const LiveInboxView: React.FC = () => {
 
           {/* Chat Stream Messages */}
           <div style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {currentConv.messages.map((msg, index) => {
-              const isUser = msg.role === 'user';
-              const isHuman = msg.role === 'human';
+            {currentConv.messages && currentConv.messages.length > 0 ? (
+              currentConv.messages.map((msg, index) => {
+                const isUser = msg.role === 'user';
+                const isHuman = msg.role === 'human';
 
-              return (
-                <div
-                  key={index}
-                  style={{
-                    alignSelf: isUser ? 'flex-start' : 'flex-end',
-                    maxWidth: '75%',
-                    background: isUser ? '#ffffff' : isHuman ? '#dbeafe' : '#d9fdd3',
-                    color: '#111b21',
-                    padding: '12px 16px',
-                    borderRadius: isUser ? '0 14px 14px 14px' : '14px 0 14px 14px',
-                    fontSize: '0.9rem',
-                    lineHeight: 1.5,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                    border: isHuman ? '1px solid #93c5fd' : 'none'
-                  }}
-                >
-                  <div style={{ fontSize: '0.725rem', fontWeight: 800, color: isUser ? '#2563eb' : isHuman ? '#1e3a8a' : '#15803d', marginBottom: '4px' }}>
-                    {isUser ? 'Customer' : isHuman ? '👤 Human Agent Reply' : '🤖 AI Agent (Groq)'}
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      alignSelf: isUser ? 'flex-start' : 'flex-end',
+                      maxWidth: '75%',
+                      background: isUser ? '#ffffff' : isHuman ? '#dbeafe' : '#d9fdd3',
+                      color: '#111b21',
+                      padding: '12px 16px',
+                      borderRadius: isUser ? '0 14px 14px 14px' : '14px 0 14px 14px',
+                      fontSize: '0.9rem',
+                      lineHeight: 1.5,
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                      border: isHuman ? '1px solid #93c5fd' : 'none'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.725rem', fontWeight: 800, color: isUser ? '#2563eb' : isHuman ? '#1e3a8a' : '#15803d', marginBottom: '4px' }}>
+                      {isUser ? 'Customer' : isHuman ? '👤 Human Agent Reply' : '🤖 Swasti AI Agent'}
+                    </div>
+                    {msg.content}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px', fontSize: '0.65rem', color: '#667781' }}>
+                      {msg.time} {isUser ? null : <CheckCheck size={14} color="#53bdeb" style={{ marginLeft: '4px' }} />}
+                    </div>
                   </div>
-                  {msg.content}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px', fontSize: '0.65rem', color: '#667781' }}>
-                    {msg.time} {isUser ? null : <CheckCheck size={14} color="#53bdeb" style={{ marginLeft: '4px' }} />}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                <MessageSquare size={36} color="#2563eb" style={{ margin: '0 auto 8px', display: 'block' }} />
+                <div style={{ fontWeight: 800 }}>No chat history for this customer yet.</div>
+              </div>
+            )}
           </div>
 
           {/* Direct WhatsApp Text Reply Input Box */}

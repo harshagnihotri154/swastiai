@@ -104,7 +104,7 @@ export const ContactPage: React.FC = () => {
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>WHATSAPP & CALL</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>+91-9084553059</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>+91-1800-SWASTI-AI</div>
             </div>
           </div>
 

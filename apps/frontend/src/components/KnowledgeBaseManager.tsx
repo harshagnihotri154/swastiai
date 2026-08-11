@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BookOpen, Plus, Trash2, Cpu, FileText, Globe, HelpCircle, Search, RefreshCw, Upload, FileCheck } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 export const KnowledgeBaseManager: React.FC = () => {
   const [items, setItems] = useState<any[]>([]);
@@ -32,14 +33,14 @@ export const KnowledgeBaseManager: React.FC = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/v1/knowledge');
+      const res = await fetch(`${API_BASE_URL}/api/v1/knowledge`);
       const data = await res.json();
       if (data.success && data.data) {
         setItems(data.data);
       }
 
       // Fetch custom MCP tools
-      const mcpRes = await fetch('http://localhost:5001/api/v1/mcp/tools');
+      const mcpRes = await fetch(`${API_BASE_URL}/api/v1/mcp/tools`);
       const mcpData = await mcpRes.json();
       if (mcpData.success && mcpData.custom) {
         const mappedCustom = mcpData.custom.map((c: any) => ({
@@ -88,7 +89,7 @@ export const KnowledgeBaseManager: React.FC = () => {
 
     setAddingMcp(true);
     try {
-      const res = await fetch('http://localhost:5001/api/v1/mcp/tools', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/mcp/tools`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -117,7 +118,7 @@ export const KnowledgeBaseManager: React.FC = () => {
 
     setAdding(true);
     try {
-      const res = await fetch('http://localhost:5001/api/v1/knowledge', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/knowledge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, content, type })
@@ -138,7 +139,7 @@ export const KnowledgeBaseManager: React.FC = () => {
 
   const handleDeleteItem = async (id: string) => {
     try {
-      await fetch(`http://localhost:5001/api/v1/knowledge/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/v1/knowledge/${id}`, { method: 'DELETE' });
       setItems((prev) => prev.filter((item) => item._id !== id));
     } catch (err) {
       setItems((prev) => prev.filter((item) => item._id !== id));

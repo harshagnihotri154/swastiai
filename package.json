@@ -1,0 +1,16 @@
+{
+  "name": "swastiai-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd apps/frontend && npm run build",
+    "build:backend": "cd apps/backend && npm run build",
+    "dev:backend": "cd apps/backend && npm run dev",
+    "dev:frontend": "cd apps/frontend && npm run dev"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.1",
+    "typescript": "^5.8.3"
+  }
+}

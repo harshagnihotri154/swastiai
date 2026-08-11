@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "buildCommand": "cd apps/frontend && npm run build",
+  "outputDirectory": "apps/frontend/dist",
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "/api"
+    },
+    {
+      "source": "/webhook",
+      "destination": "/api"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/api"
+    }
+  ]
+}

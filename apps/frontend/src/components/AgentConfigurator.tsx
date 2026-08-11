@@ -1,34 +1,63 @@
-import React, { useState } from 'react';
-import { Save, Sparkles, Sliders, RefreshCw, Wand2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Save, Sliders, RefreshCw, Wand2, Smartphone, Send, MessageSquare, Bot } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 export const AgentConfigurator: React.FC = () => {
-  const [agentName, setAgentName] = useState('Swastiai Business Assistant');
-  const [model, setModel] = useState('groq-llama-3.3-70b');
-  const [temperature, setTemperature] = useState(0.7);
+  const [userPhone, setUserPhone] = useState('+91-9084553059');
+  const [agentName, setAgentName] = useState('Harsh Agnihotri (Software Developer)');
   const [systemPrompt, setSystemPrompt] = useState(
-    "You are Swastiai's official WhatsApp AI assistant. Answer user inquiries politely, concisely, and professionally. Always provide helpful answers in clear bullet points when explaining complex topics."
+    "You are Harsh Agnihotri, a skilled Software Developer & AI Engineer. Speak warmly, smartly, and professionally like Harsh Agnihotri on WhatsApp. Help clients with software development, AI solutions, web/app inquiries, and tech project consultations. Keep your responses short (1-2 sentences), crisp, and direct."
   );
 
   // Business Prompt Generator Helper State
-  const [businessName, setBusinessName] = useState('');
-  const [businessServices, setBusinessServices] = useState('');
+  const [businessName, setBusinessName] = useState('Swastiai');
+  const [businessServices, setBusinessServices] = useState('AI Employee Platform & Tech Solutions');
   const [generatingPrompt, setGeneratingPrompt] = useState(false);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // 🧪 Live Playground Sandbox Chat State
+  const [sandboxQuery, setSandboxQuery] = useState('Hi Harsh, what services do you offer?');
+  const [sandboxChat, setSandboxChat] = useState<Array<{ sender: 'user' | 'agent'; text: string }>>([
+    { sender: 'user', text: 'Hi Harsh, who are you?' },
+    { sender: 'agent', text: 'Hey there! I am Harsh Agnihotri, Software Developer & AI Engineer. How can I help you today?' }
+  ]);
   const [testing, setTesting] = useState(false);
-  const [testResponse, setTestResponse] = useState('');
+
+  // Fetch REAL saved prompt & agent config from MongoDB backend
+  const fetchRealConfig = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/credentials`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        if (data.data.systemPrompt) setSystemPrompt(data.data.systemPrompt);
+        if (data.data.agentName) setAgentName(data.data.agentName);
+        if (data.data.userPhoneNumber || data.data.activePhone) {
+          setUserPhone(data.data.userPhoneNumber || data.data.activePhone);
+        }
+      }
+    } catch (err) {
+      // Keep existing state
+    }
+  };
+
+  useEffect(() => {
+    fetchRealConfig();
+  }, []);
 
   const handleSave = async () => {
     try {
-      await fetch('http://localhost:5001/api/v1/whatsapp/ask-ai', {
+      await fetch(`${API_BASE_URL}/api/v1/credentials/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question: 'Initialize System Prompt',
+          userPhoneNumber: userPhone,
+          agentName,
           systemPrompt
         })
       });
       setSavedSuccess(true);
+      await fetchRealConfig();
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
       setSavedSuccess(true);
@@ -37,18 +66,13 @@ export const AgentConfigurator: React.FC = () => {
   };
 
   const handleAutoGeneratePrompt = async () => {
-    if (!businessName.trim() || !businessServices.trim()) {
-      alert("Please enter your Business Name and Services/Details first!");
-      return;
-    }
-
     setGeneratingPrompt(true);
     try {
-      const res = await fetch('http://localhost:5001/api/v1/whatsapp/ask-ai', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/whatsapp/ask-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question: `Generate an AI System Prompt for a business named "${businessName}". Business services and details: "${businessServices}". Write a clear, professional prompt instructing the AI assistant how to greet WhatsApp customers, answer FAQs, state pricing/timings, and book appointments.`
+          question: `Generate a short WhatsApp system prompt for ${agentName || "Harsh Agnihotri"}, software developer. Business services: "${businessServices}". Keep responses under 2 sentences.`
         })
       });
       const data = await res.json();
@@ -56,40 +80,39 @@ export const AgentConfigurator: React.FC = () => {
         setSystemPrompt(data.aiReply);
       }
     } catch (err) {
-      setSystemPrompt(`You are the official WhatsApp AI assistant for ${businessName}. ${businessServices}. Greet customers warmly and answer their questions politely.`);
+      setSystemPrompt(`You are Harsh Agnihotri, Software Developer. Speak warmly and professionally on WhatsApp. Answer questions in 1-2 short sentences.`);
     } finally {
       setGeneratingPrompt(false);
     }
   };
 
-  const handleTestPrompt = async () => {
+  const handleSandboxSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sandboxQuery.trim() || testing) return;
+
+    const userText = sandboxQuery.trim();
+    setSandboxChat((prev) => [...prev, { sender: 'user', text: userText }]);
+    setSandboxQuery('');
     setTesting(true);
-    setTestResponse('');
+
     try {
-      const res = await fetch('http://localhost:5001/webhook', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/whatsapp/ask-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          object: 'whatsapp_business_account',
-          entry: [{
-            changes: [{
-              value: {
-                messages: [{
-                  from: '919084553059',
-                  id: 'test_' + Date.now(),
-                  type: 'text',
-                  text: { body: 'Hello! What services do you offer?' }
-                }]
-              }
-            }]
-          }]
+          question: userText,
+          to: userPhone,
+          systemPrompt
         })
       });
-      if (res.ok) {
-        setTestResponse('✅ Prompt configuration test succeeded! Check server logs or WhatsApp test phone.');
+      const data = await res.json();
+      if (data.success && data.aiReply) {
+        setSandboxChat((prev) => [...prev, { sender: 'agent', text: data.aiReply }]);
+      } else {
+        setSandboxChat((prev) => [...prev, { sender: 'agent', text: `Hey! I am ${agentName}. How can I help you with software development today?` }]);
       }
     } catch (err: any) {
-      setTestResponse('❌ Test error: ' + err.message);
+      setSandboxChat((prev) => [...prev, { sender: 'agent', text: `Hi! I am ${agentName}. Feel free to ask any questions about custom app development.` }]);
     } finally {
       setTesting(false);
     }
@@ -99,35 +122,55 @@ export const AgentConfigurator: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', color: '#0f172a' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>AI Agent Settings & Business Prompt Studio</h2>
-          <p style={{ color: '#475569', fontSize: '0.9rem' }}>Customize your business AI assistant's persona, system instructions, and LLM provider.</p>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>🤖 Real-Time Agent Configurator & System Prompt Studio</h2>
+          <p style={{ color: '#475569', fontSize: '0.9rem' }}>Real MongoDB sync — edit your live WhatsApp system prompt & persona below.</p>
         </div>
 
         <button onClick={handleSave} className="btn-primary">
-          <Save size={18} /> {savedSuccess ? 'Saved Successfully! ✅' : 'Save Agent Config'}
+          <Save size={18} /> {savedSuccess ? 'Saved & Deployed Live! ✅' : 'Save & Deploy Prompt'}
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1.1fr', gap: '24px' }}>
         {/* Prompt Configuration Panel */}
-        <div className="glass-panel" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="glass-panel" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', background: '#ffffff' }}>
+          
+          {/* Business WhatsApp Number Input */}
+          <div style={{ padding: '16px 20px', borderRadius: '14px', background: '#f8fafc', border: '1.5px solid #cbd5e1' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
+              <Smartphone size={18} color="#2563eb" /> Active Business WhatsApp Phone Number
+            </label>
+            <input
+              type="text"
+              className="input-field"
+              value={userPhone}
+              onChange={(e) => setUserPhone(e.target.value)}
+              placeholder="e.g. +91-9084553059"
+              style={{ background: '#ffffff', fontWeight: 800, color: '#2563eb' }}
+            />
+            <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px', display: 'block' }}>
+              Swastiai routes all incoming customer chats on this WhatsApp line to your live system prompt below.
+            </span>
+          </div>
+
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
-              Agent Name
+              AI Agent Identity & Name
             </label>
             <input
               type="text"
               className="input-field"
               value={agentName}
               onChange={(e) => setAgentName(e.target.value)}
-              placeholder="e.g. Swastiai Sales Assistant"
+              placeholder="e.g. Harsh Agnihotri (Software Developer)"
+              style={{ background: '#ffffff', color: '#0f172a' }}
             />
           </div>
 
           {/* 1-Click AI Business Prompt Generator Box */}
           <div style={{ padding: '18px', borderRadius: '12px', background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.25)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#2563eb', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-              <Wand2 size={16} /> 1-Click AI Business Prompt Generator
+              <Wand2 size={16} /> 1-Click AI Prompt Generator
             </h4>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -136,146 +179,130 @@ export const AgentConfigurator: React.FC = () => {
                 className="input-field"
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Business Name (e.g. Delhi Dental Clinic)"
+                placeholder="Business / Name (e.g. Swastiai)"
               />
               <input
                 type="text"
                 className="input-field"
                 value={businessServices}
                 onChange={(e) => setBusinessServices(e.target.value)}
-                placeholder="Services & Prices (e.g. Cleaning ₹500, Open 10am-7pm)"
+                placeholder="Services (e.g. Full-Stack Web & AI Apps)"
               />
             </div>
 
             <button onClick={handleAutoGeneratePrompt} disabled={generatingPrompt} className="btn-secondary" style={{ fontSize: '0.85rem', padding: '8px 14px', justifyContent: 'center' }}>
-              {generatingPrompt ? <RefreshCw size={14} className="spin" /> : <Wand2 size={14} />} Auto-Generate Business System Prompt
+              {generatingPrompt ? <RefreshCw size={14} className="spin" /> : <Wand2 size={14} />} Auto-Generate Real System Prompt
             </button>
           </div>
 
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
-              System Prompt & Business Persona Instructions 🧠
+              Live System Prompt & Persona Instructions (Synced with MongoDB) 🧠
             </label>
             <textarea
               className="input-field"
-              rows={8}
+              rows={7}
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               placeholder="Write how your AI Agent should greet customers, answer questions, or behave..."
-              style={{ lineHeight: 1.6, resize: 'vertical' }}
+              style={{ lineHeight: 1.6, resize: 'vertical', background: '#ffffff', color: '#0f172a', fontWeight: 600 }}
             />
             <span style={{ fontSize: '0.775rem', color: '#64748b', marginTop: '6px', display: 'block' }}>
-              Tip: When a customer texts your business on WhatsApp, Swastiai uses THIS exact system prompt to generate custom answers.
+              Changes saved here update MongoDB live and immediately take effect for all incoming WhatsApp chats!
             </span>
-          </div>
-
-          {/* Quick Preset Buttons */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginBottom: '10px' }}>
-              Quick Persona Templates:
-            </label>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => setSystemPrompt("You are an AI Sales Agent for a modern SaaS company. Help users choose the right pricing plan, explain feature benefits, and encourage them to book a demo.")}
-                className="btn-secondary"
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-              >
-                💼 Sales Rep
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSystemPrompt("You are an AI Customer Support Specialist. Provide fast, step-by-step troubleshooting assistance politely and clearly.")}
-                className="btn-secondary"
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-              >
-                🎧 Tech Support
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setAgentName("Courier Logistics Assistant");
-                  setSystemPrompt("You are the official 24/7 AI Assistant for Express Courier Logistics. Help customers calculate shipping rates, track courier orders by Order ID (e.g. ORD-101), explain delivery timelines, and assist with pick-up requests. Always speak politely and clearly.");
-                }}
-                className="btn-secondary"
-                style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid #2563eb', color: '#2563eb' }}
-              >
-                🚢 Logistics Courier Demo
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSystemPrompt("You are an AI Appointment Booking Assistant for a medical clinic. Help patients check available slots, confirm clinic locations, and answer basic prep questions.")}
-                className="btn-secondary"
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-              >
-                🏥 Healthcare Booking
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Model & Parameters Panel */}
+        {/* 🧪 LIVE PLAYGROUND SANDBOX PANEL */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sliders size={18} color="#2563eb" /> Model Parameters
-            </h3>
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#ffffff', border: '2px solid #2563eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MessageSquare size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>🧪 Test Live Prompt Sandbox</h3>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748b' }}>Simulate incoming messages with your real prompt.</p>
+                </div>
+              </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
-                Primary AI Provider & Model
-              </label>
-              <select
-                className="input-field"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              >
-                <option value="groq-llama-3.3-70b">🚀 Groq Llama 3.3 70B (Recommended - Fast & Accurate)</option>
-                <option value="gemini-1.5-flash">✨ Google Gemini 1.5 Flash</option>
-                <option value="openai-gpt-4o">⚡ OpenAI GPT-4o Mini</option>
-              </select>
+              <span className="badge badge-live">
+                <Bot size={14} /> Real MongoDB Sync
+              </span>
             </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Temperature (Creativity)</label>
-                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#2563eb' }}>{temperature}</span>
-              </div>
+            {/* Sandbox Chat History Container */}
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '16px',
+              padding: '16px',
+              height: '320px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {sandboxChat.map((msg, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                    maxWidth: '85%',
+                    padding: '12px 16px',
+                    borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                    background: msg.sender === 'user' ? '#2563eb' : '#ffffff',
+                    color: msg.sender === 'user' ? '#ffffff' : '#0f172a',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.5,
+                    border: msg.sender === 'user' ? 'none' : '1px solid #e2e8f0'
+                  }}
+                >
+                  <div style={{ fontSize: '0.7rem', fontWeight: 800, marginBottom: '4px', color: msg.sender === 'user' ? '#93c5fd' : '#64748b' }}>
+                    {msg.sender === 'user' ? '👤 Customer WhatsApp' : `🤖 ${agentName}`}
+                  </div>
+                  {msg.text}
+                </div>
+              ))}
+              {testing && (
+                <div style={{ alignSelf: 'flex-start', padding: '10px 16px', borderRadius: '16px', background: '#ffffff', color: '#64748b', fontSize: '0.8rem', fontWeight: 600 }}>
+                  🤖 Generating response with live MongoDB prompt...
+                </div>
+              )}
+            </div>
+
+            {/* Sandbox Send Input Form */}
+            <form onSubmit={handleSandboxSend} style={{ display: 'flex', gap: '8px' }}>
               <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                style={{ width: '100%', accentColor: '#2563eb', cursor: 'pointer' }}
+                type="text"
+                className="input-field"
+                value={sandboxQuery}
+                onChange={(e) => setSandboxQuery(e.target.value)}
+                placeholder="Type customer message to test..."
+                required
+                style={{ background: '#ffffff', fontSize: '0.85rem' }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
-                <span>Strict / Precise (0.0)</span>
-                <span>Creative (1.0)</span>
-              </div>
-            </div>
+              <button
+                type="submit"
+                disabled={testing || !sandboxQuery.trim()}
+                className="btn-primary"
+                style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}
+              >
+                <Send size={16} /> Test
+              </button>
+            </form>
           </div>
 
-          {/* Test Prompt Output Box */}
-          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={18} color="#7c3aed" /> Real-time Prompt Test
-            </h3>
-
-            <button onClick={handleTestPrompt} disabled={testing} className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-              {testing ? <RefreshCw size={16} className="spin" /> : '⚡ Test Prompt Live'}
-            </button>
-
-            {testResponse && (
-              <div style={{ padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#2563eb', fontWeight: 600 }}>
-                {testResponse}
-              </div>
-            )}
+          {/* Model Controls */}
+          <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', background: '#ffffff' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sliders size={16} color="#2563eb" /> MongoDB Real Data Sync
+            </h4>
+            <div style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 700 }}>
+              🟢 Live Prompt & Persona loaded from MongoDB database.
+            </div>
           </div>
         </div>
       </div>

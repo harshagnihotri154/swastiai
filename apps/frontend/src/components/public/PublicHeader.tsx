@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 
 interface PublicHeaderProps {
   activePage: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact';
@@ -16,95 +16,121 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
   onGoToDashboard,
   isLoggedIn
 }) => {
-  const navItems: { id: 'home' | 'services' | 'guide' | 'about' | 'pricing' | 'contact'; label: string }[] = [
-    { id: 'home', label: 'Home' },
-    { id: 'services', label: 'Services' },
-    { id: 'guide', label: 'How It Works' },
-    { id: 'about', label: 'About Us' },
-    { id: 'pricing', label: 'Pricing' },
-    { id: 'contact', label: 'Contact' },
-  ];
-
   return (
     <header style={{
-      height: '76px',
+      height: '80px',
       padding: '0 48px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderBottom: '1px solid #e2e8f0',
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      backdropFilter: 'blur(20px)',
+      backgroundColor: '#ffffff',
+      borderBottom: '1px solid #f1f5f9',
       position: 'sticky',
       top: 0,
       zIndex: 100
     }}>
-      {/* Logo */}
+      {/* Brand Logo matching SS */}
       <div
         onClick={() => setActivePage('home')}
-        style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
       >
         <div style={{
-          width: '42px',
-          height: '42px',
-          borderRadius: '14px',
-          background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)',
+          width: '38px',
+          height: '38px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #6366f1 0%, #3b82f6 50%, #a855f7 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)'
+          color: '#ffffff',
+          fontWeight: 900,
+          fontSize: '1.25rem',
+          boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
         }}>
-          <Bot size={26} color="#ffffff" />
+          S
         </div>
         <div>
-          <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', display: 'block', lineHeight: 1 }}>SWASTIAI</span>
-          <span style={{ fontSize: '0.65rem', color: '#2563eb', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI WhatsApp SaaS</span>
+          <span style={{ fontSize: '1.35rem', fontWeight: 900, color: '#000000', letterSpacing: '-0.03em', display: 'block', lineHeight: 1 }}>SWASTIAI</span>
+          <span style={{ fontSize: '0.625rem', color: '#6366f1', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI WORKSPACE</span>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '5px', borderRadius: '30px', border: '1px solid #e2e8f0' }}>
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActivePage(item.id)}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '20px',
-                background: isActive ? '#ffffff' : 'transparent',
-                color: isActive ? '#2563eb' : '#64748b',
-                fontWeight: isActive ? 800 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                border: isActive ? '1px solid #cbd5e1' : '1px solid transparent',
-                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.06)' : 'none'
-              }}
-            >
-              {item.label}
-            </button>
-          );
-        })}
+      {/* Navigation items matching SS */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <button onClick={() => setActivePage('home')} style={{ background: 'none', border: 'none', color: activePage === 'home' ? '#000000' : '#475569', fontWeight: activePage === 'home' ? 800 : 600, fontSize: '0.925rem', cursor: 'pointer' }}>
+          Product
+        </button>
+        <button onClick={() => setActivePage('services')} style={{ background: 'none', border: 'none', color: activePage === 'services' ? '#000000' : '#475569', fontWeight: activePage === 'services' ? 800 : 600, fontSize: '0.925rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          Solutions <ChevronDown size={14} />
+        </button>
+        <button onClick={() => setActivePage('pricing')} style={{ background: 'none', border: 'none', color: activePage === 'pricing' ? '#000000' : '#475569', fontWeight: activePage === 'pricing' ? 800 : 600, fontSize: '0.925rem', cursor: 'pointer' }}>
+          Pricing
+        </button>
+        <button onClick={() => setActivePage('guide')} style={{ background: 'none', border: 'none', color: activePage === 'guide' ? '#000000' : '#475569', fontWeight: activePage === 'guide' ? 800 : 600, fontSize: '0.925rem', cursor: 'pointer' }}>
+          Docs
+        </button>
+        <button onClick={() => setActivePage('about')} style={{ background: 'none', border: 'none', color: activePage === 'about' ? '#000000' : '#475569', fontWeight: activePage === 'about' ? 800 : 600, fontSize: '0.925rem', cursor: 'pointer' }}>
+          About Us
+        </button>
       </nav>
 
-      {/* CTA / User Status Buttons */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      {/* Right Action Buttons matching SS */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         {isLoggedIn ? (
-          <button onClick={onGoToDashboard} className="btn-primary" style={{ padding: '10px 22px', fontSize: '0.9rem' }}>
+          <button
+            onClick={onGoToDashboard}
+            style={{
+              padding: '11px 24px',
+              borderRadius: '30px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
             Go to Dashboard <ArrowRight size={16} />
           </button>
         ) : (
           <>
             <button
               onClick={onOpenAuth}
-              style={{ background: 'none', border: 'none', color: '#0f172a', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}
+              style={{
+                padding: '10px 22px',
+                borderRadius: '30px',
+                border: '1px solid #cbd5e1',
+                background: '#ffffff',
+                color: '#0f172a',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer'
+              }}
             >
-              Sign In
+              Sign in
             </button>
-            <button onClick={onOpenAuth} className="btn-primary" style={{ padding: '10px 22px', fontSize: '0.9rem' }}>
-              <Sparkles size={16} /> Get Started Free
+            <button
+              onClick={onOpenAuth}
+              style={{
+                padding: '11px 24px',
+                borderRadius: '30px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              Get Started Free <ArrowRight size={16} />
             </button>
           </>
         )}

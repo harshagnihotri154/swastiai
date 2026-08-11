@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Folder, Link2, Settings2, Sparkles, ArrowRight, Bot, Smartphone, CheckCheck, Send } from 'lucide-react';
 
-export const ArchitectureDiagramSection: React.FC = () => {
+interface ArchitectureDiagramSectionProps {
+  onOpenAuth?: () => void;
+  onGoToDashboard?: () => void;
+  isLoggedIn?: boolean;
+}
+
+export const ArchitectureDiagramSection: React.FC<ArchitectureDiagramSectionProps> = ({
+  onOpenAuth,
+  onGoToDashboard,
+  isLoggedIn
+}) => {
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
   const [animStage, setAnimStage] = useState(0);
 
@@ -19,10 +29,18 @@ export const ArchitectureDiagramSection: React.FC = () => {
 
   const leftNodes = [
     { id: 1, label: 'Your Data', icon: Folder, iconBg: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', iconColor: '#0284c7', offsetLeft: '0px' },
-    { id: 2, label: 'Your workflow', icon: Link2, iconBg: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', iconColor: '#4f46e5', offsetLeft: '48px' },
+    { id: 2, label: 'Your workflow', icon: Link2, iconBg: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', iconColor: '#2563eb', offsetLeft: '48px' },
     { id: 3, label: 'Your business processes', icon: Settings2, iconBg: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', iconColor: '#0284c7', offsetLeft: '0px' },
-    { id: 4, label: 'Your objectives', icon: Sparkles, iconBg: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', iconColor: '#7c3aed', offsetLeft: '36px' },
+    { id: 4, label: 'Your objectives', icon: Sparkles, iconBg: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', iconColor: '#2563eb', offsetLeft: '36px' },
   ];
+
+  const handleButtonClick = () => {
+    if (isLoggedIn && onGoToDashboard) {
+      onGoToDashboard();
+    } else if (onOpenAuth) {
+      onOpenAuth();
+    }
+  };
 
   return (
     <section style={{
@@ -33,7 +51,7 @@ export const ArchitectureDiagramSection: React.FC = () => {
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Background Soft Purple Glow Mesh matching screen recording */}
+      {/* Background Soft Blue Glow Mesh */}
       <div style={{
         position: 'absolute',
         top: '50%',
@@ -41,14 +59,14 @@ export const ArchitectureDiagramSection: React.FC = () => {
         transform: 'translate(-50%, -50%)',
         width: '900px',
         height: '480px',
-        background: 'radial-gradient(ellipse at center, rgba(147, 51, 234, 0.09) 0%, rgba(124, 58, 237, 0.04) 50%, transparent 75%)',
+        background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.09) 0%, rgba(2, 132, 199, 0.04) 50%, transparent 75%)',
         filter: 'blur(40px)',
         pointerEvents: 'none'
       }} />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 10 }}>
 
-        {/* Section Headline matching recording typography */}
+        {/* Section Headline */}
         <div style={{ textAlign: 'center', maxWidth: '860px', margin: '0 auto 56px' }}>
           <h2 style={{
             fontSize: '2.8rem',
@@ -76,7 +94,7 @@ export const ArchitectureDiagramSection: React.FC = () => {
           background: 'transparent'
         }}>
 
-          {/* SVG Connector Lines & Animated Glowing Beams (Matching recording paths) */}
+          {/* SVG Connector Lines & Animated Glowing Royal Blue Beams */}
           <svg style={{
             position: 'absolute',
             top: 0,
@@ -87,11 +105,11 @@ export const ArchitectureDiagramSection: React.FC = () => {
             zIndex: 1
           }}>
             <defs>
-              {/* Electric Blue Glow Gradient */}
-              <linearGradient id="recordingBlueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              {/* Electric Royal Blue Glow Gradient */}
+              <linearGradient id="royalBlueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.2" />
                 <stop offset="60%" stopColor="#2563eb" stopOpacity="1" />
-                <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
               </linearGradient>
 
               <filter id="recGlow" x="-20%" y="-20%" width="140%" height="140%">
@@ -101,24 +119,20 @@ export const ArchitectureDiagramSection: React.FC = () => {
             </defs>
 
             {/* Static Guide Circuit Lines */}
-            {/* Pill 1 -> Center */}
             <path d="M 220 65 L 370 65 L 370 170 L 440 170" stroke="#e2e8f0" strokeWidth="1.5" fill="none" />
-            {/* Pill 2 -> Center */}
             <path d="M 265 165 L 440 165" stroke="#e2e8f0" strokeWidth="1.5" fill="none" />
-            {/* Pill 3 -> Center */}
             <path d="M 220 265 L 330 265 L 330 220 L 440 220" stroke="#e2e8f0" strokeWidth="1.5" fill="none" />
-            {/* Pill 4 -> Center */}
             <path d="M 255 365 L 370 365 L 370 240 L 440 240" stroke="#e2e8f0" strokeWidth="1.5" fill="none" />
 
             {/* Main Center -> WhatsApp Agent Path */}
             <path d="M 580 215 L 750 215" stroke="#e2e8f0" strokeWidth="2" fill="none" />
 
-            {/* ANIMATED GLOWING LIGHTNING BEAMS (Matching recording motion) */}
+            {/* ANIMATED GLOWING ROYAL BLUE BEAMS */}
             {animStage >= 1 && (
               <>
                 <path
                   d="M 220 65 L 370 65 L 370 170 L 440 170"
-                  stroke="url(#recordingBlueGradient)"
+                  stroke="url(#royalBlueGradient)"
                   strokeWidth="3.5"
                   fill="none"
                   filter="url(#recGlow)"
@@ -127,7 +141,7 @@ export const ArchitectureDiagramSection: React.FC = () => {
                 />
                 <path
                   d="M 265 165 L 440 165"
-                  stroke="url(#recordingBlueGradient)"
+                  stroke="url(#royalBlueGradient)"
                   strokeWidth="3.5"
                   fill="none"
                   filter="url(#recGlow)"
@@ -136,7 +150,7 @@ export const ArchitectureDiagramSection: React.FC = () => {
                 />
                 <path
                   d="M 220 265 L 330 265 L 330 220 L 440 220"
-                  stroke="url(#recordingBlueGradient)"
+                  stroke="url(#royalBlueGradient)"
                   strokeWidth="3.5"
                   fill="none"
                   filter="url(#recGlow)"
@@ -145,7 +159,7 @@ export const ArchitectureDiagramSection: React.FC = () => {
                 />
                 <path
                   d="M 255 365 L 370 365 L 370 240 L 440 240"
-                  stroke="url(#recordingBlueGradient)"
+                  stroke="url(#royalBlueGradient)"
                   strokeWidth="3.5"
                   fill="none"
                   filter="url(#recGlow)"
@@ -156,7 +170,7 @@ export const ArchitectureDiagramSection: React.FC = () => {
                 {/* Core Output Beam -> Right */}
                 <path
                   d="M 580 215 L 750 215"
-                  stroke="url(#recordingBlueGradient)"
+                  stroke="url(#royalBlueGradient)"
                   strokeWidth="4"
                   fill="none"
                   filter="url(#recGlow)"
@@ -214,7 +228,7 @@ export const ArchitectureDiagramSection: React.FC = () => {
             })}
           </div>
 
-          {/* CENTER COLUMN: Concentric Orbit Rings & AI Core Orb */}
+          {/* CENTER COLUMN: Concentric Orbit Rings & SWASTIAI Royal Blue Core Orb */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -223,7 +237,6 @@ export const ArchitectureDiagramSection: React.FC = () => {
             position: 'relative',
             zIndex: 10
           }}>
-            {/* Orbit Rings matching recording */}
             <div style={{
               position: 'relative',
               width: '280px',
@@ -256,17 +269,13 @@ export const ArchitectureDiagramSection: React.FC = () => {
                 border: '1px solid #cbd5e1'
               }} />
 
-              {/* Glowing Purple AI Core Orb matching recording frames */}
+              {/* Glowing Royal Blue SWASTIAI Core Orb */}
               <div style={{
                 width: '92px',
                 height: '92px',
                 borderRadius: '50%',
-                background: animStage >= 2
-                  ? 'radial-gradient(circle at 35% 35%, #a855f7 0%, #7c3aed 65%, #581c87 100%)'
-                  : 'radial-gradient(circle at 35% 35%, #93c5fd 0%, #3b82f6 65%, #1d4ed8 100%)',
-                boxShadow: animStage >= 2
-                  ? '0 0 55px rgba(168, 85, 247, 0.65), 0 0 25px rgba(124, 58, 237, 0.45), inset 0 0 15px rgba(255,255,255,0.4)'
-                  : '0 0 45px rgba(59, 130, 246, 0.5), inset 0 0 15px rgba(255,255,255,0.4)',
+                background: 'radial-gradient(circle at 35% 35%, #60a5fa 0%, #2563eb 65%, #1d4ed8 100%)',
+                boxShadow: '0 0 55px rgba(37, 99, 235, 0.65), 0 0 25px rgba(2, 132, 199, 0.45), inset 0 0 15px rgba(255,255,255,0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -283,15 +292,16 @@ export const ArchitectureDiagramSection: React.FC = () => {
               </div>
             </div>
 
+            {/* Brand Title Under Circle */}
             <div style={{
               fontWeight: 900,
               fontSize: '1.25rem',
-              color: '#000000',
-              letterSpacing: '0.04em',
+              color: '#0f172a',
+              letterSpacing: '0.06em',
               marginTop: '10px',
               textTransform: 'uppercase'
             }}>
-              YOUR TOOLS
+              SWASTIAI
             </div>
           </div>
 
@@ -379,24 +389,27 @@ export const ArchitectureDiagramSection: React.FC = () => {
 
         </div>
 
-        {/* Solid Purple CTA Button matching recording */}
+        {/* Interactive Solid Royal Blue CTA Button */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '60px' }}>
-          <button style={{
-            padding: '16px 42px',
-            borderRadius: '40px',
-            border: 'none',
-            background: 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%)',
-            color: '#ffffff',
-            fontWeight: 800,
-            fontSize: '1.05rem',
-            cursor: 'pointer',
-            boxShadow: '0 10px 30px rgba(124, 58, 237, 0.35)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            transition: 'all 0.2s ease'
-          }}>
-            Start Your Custom Implementation <ArrowRight size={20} color="#ffffff" />
+          <button
+            onClick={handleButtonClick}
+            style={{
+              padding: '16px 42px',
+              borderRadius: '40px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #0284c7 100%)',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '1.05rem',
+              cursor: 'pointer',
+              boxShadow: '0 10px 30px rgba(37, 99, 235, 0.35)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {isLoggedIn ? 'Go to Dashboard' : 'Start Your Custom Implementation'} <ArrowRight size={20} color="#ffffff" />
           </button>
         </div>
 

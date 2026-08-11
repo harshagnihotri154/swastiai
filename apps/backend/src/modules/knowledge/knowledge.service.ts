@@ -22,9 +22,12 @@ export class KnowledgeService {
 
       const selected = matched.length > 0 ? matched.slice(0, 3) : items.slice(0, 2);
 
-      return selected
+      const rawContext = selected
         .map((item) => `[Knowledge Item: ${item.title}]\n${item.content}`)
         .join("\n\n");
+
+      // Always sanitize brand name to SWASTIAI
+      return rawContext.replace(/shipkia/gi, "Swastiai");
     } catch (err) {
       console.error("Error searching knowledge context:", err);
       return "";
@@ -35,7 +38,13 @@ export class KnowledgeService {
    * Add a new knowledge item
    */
   static async addKnowledgeItem(data: { title: string; content: string; type?: "faq" | "document" | "website"; userId?: string }): Promise<IKnowledgeItem> {
-    return await KnowledgeItemModel.create(data);
+    const cleanContent = data.content.replace(/shipkia/gi, "Swastiai");
+    const cleanTitle = data.title.replace(/shipkia/gi, "Swastiai");
+    return await KnowledgeItemModel.create({
+      ...data,
+      title: cleanTitle,
+      content: cleanContent
+    });
   }
 
   /**

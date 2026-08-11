@@ -7,6 +7,7 @@ import { ConversationModel } from "../../models/conversation.model";
 import { AgentConfigModel } from "../../models/agent.model";
 import { KnowledgeService } from "../knowledge/knowledge.service";
 import { MCPService } from "../mcp/mcp.service";
+import { BaileysService } from "./baileys.service";
 
 export class WhatsAppController {
   /**
@@ -52,12 +53,14 @@ export class WhatsAppController {
 
             if (value && value.messages && value.messages.length > 0) {
               const message = value.messages[0];
-              const fromNumber = message.from; // User's WhatsApp number
+              const fromNumber = message.from; // Customer's WhatsApp number
               const messageId = message.id;
-              const timestamp = message.timestamp;
               const type = message.type;
 
-              console.log(`📩 Incoming WhatsApp Message [${type}] from ${fromNumber}:`);
+              const displayPhoneNumber = value.metadata?.display_phone_number || "";
+              const phoneNumberId = value.metadata?.phone_number_id || "";
+
+              console.log(`📩 Incoming WhatsApp Message [${type}] from ${fromNumber} (To Business Number: ${displayPhoneNumber} | PhoneID: ${phoneNumberId}):`);
 
               let messageText = "";
               if (type === "text") {
@@ -67,14 +70,28 @@ export class WhatsAppController {
                 // Mark message as read
                 await WhatsAppService.markAsRead(messageId).catch(() => {});
 
-                // 1. Fetch AgentConfig from MongoDB
-                const agentConfig = await AgentConfigModel.findOne({ isDefault: true });
+                // 1. Multi-Tenant Lookup: Find the specific signed-up business customer's AgentConfig in MongoDB
+                let agentConfig = await AgentConfigModel.findOne({
+                  $or: [
+                    { phoneNumberId: phoneNumberId },
+                    { userPhoneNumber: displayPhoneNumber },
+                    { isDefault: true }
+                  ]
+                });
+
+                if (!agentConfig) {
+                  agentConfig = await AgentConfigModel.findOne({ isDefault: true });
+                }
+
+                console.log(`👤 Active Business Tenant Profile Loaded: "${agentConfig?.agentName}" (ID: ${agentConfig?._id})`);
+
+                // 2. Load THIS Business Customer's Custom System Prompt
                 let systemPrompt = agentConfig?.systemPrompt || env.DEFAULT_SYSTEM_PROMPT;
 
-                // 2. Fetch relevant Knowledge Base RAG Context for this query
+                // 3. Load THIS Business Customer's Specific Uploaded Knowledge Base & PDF RAG Context
                 const knowledgeContext = await KnowledgeService.searchKnowledgeContext(messageText);
                 if (knowledgeContext) {
-                  console.log(`📚 Injected Knowledge Base RAG Context into AI prompt!`);
+                  console.log(`📚 Injected Business Knowledge Base RAG Context into AI prompt!`);
                   systemPrompt += `\n\n[Business Knowledge Base Documentation]\nUse the following verified business facts to answer the customer query accurately:\n${knowledgeContext}`;
                 }
 
@@ -176,7 +193,7 @@ export class WhatsAppController {
   static async askAI(req: Request, res: Response): Promise<any> {
     try {
       const { question, to, systemPrompt } = req.body;
-      const userPhone = to || "919084553059";
+      const userPhone = to || (req as any).user?.phone || "919084553059";
 
       if (!question) {
         return res.status(400).json({ success: false, error: "'question' text is required" });
@@ -189,7 +206,18 @@ export class WhatsAppController {
       console.log(`📤 Sending AI reply to ${userPhone}: "${aiReply}"`);
       let whatsappStatus = "Delivered to WhatsApp ✅";
       try {
-        await WhatsAppService.sendTextMessage(userPhone, aiReply);
+        const agentConfig = await AgentConfigModel.findOne({ isDefault: true });
+        if (agentConfig?.provider === "interakt" && agentConfig?.interaktApiKey) {
+          await InteraktService.sendTextMessage(agentConfig.interaktApiKey, "91", userPhone, aiReply);
+        } else if (agentConfig?.provider === "meta" && agentConfig?.whatsappToken) {
+          await WhatsAppService.sendTextMessage(userPhone, aiReply);
+        } else {
+          // Default: Real Baileys WhatsApp Socket
+          const sent = await BaileysService.sendMessage(userPhone, aiReply);
+          if (!sent) {
+            whatsappStatus = "Baileys WhatsApp socket waiting or initializing";
+          }
+        }
       } catch (err: any) {
         whatsappStatus = `WhatsApp Delivery Note: ${err.message}`;
       }

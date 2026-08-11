@@ -1,4 +1,3 @@
-import makeWASocket, { DisconnectReason, useMultiFileAuthState } from "@whiskeysockets/baileys";
 import QRCode from "qrcode";
 import path from "path";
 import fs from "fs";
@@ -7,6 +6,25 @@ import { ConversationModel } from "../../models/conversation.model";
 import { KnowledgeService } from "../knowledge/knowledge.service";
 import { AIService } from "../ai/ai.service";
 import { env } from "../../config/env";
+
+let makeWASocket: any = null;
+let DisconnectReason: any = null;
+let useMultiFileAuthState: any = null;
+
+async function loadBaileys(): Promise<boolean> {
+  if (makeWASocket && useMultiFileAuthState) return true;
+  if (process.env.VERCEL) return false;
+  try {
+    const baileys = await import("@whiskeysockets/baileys");
+    makeWASocket = baileys.default || baileys.makeWASocket || baileys;
+    DisconnectReason = baileys.DisconnectReason;
+    useMultiFileAuthState = baileys.useMultiFileAuthState;
+    return true;
+  } catch (err: any) {
+    console.warn("Baileys load skipped:", err.message || err);
+    return false;
+  }
+}
 
 export class BaileysService {
   private static sock: any = null;
@@ -68,6 +86,9 @@ export class BaileysService {
    */
   static async initSession(forceFresh: boolean = false): Promise<void> {
     try {
+      const loaded = await loadBaileys();
+      if (!loaded) return;
+
       if (forceFresh) {
         this.clearStaleSession();
       }
@@ -193,6 +214,7 @@ export class BaileysService {
    */
   static async sendMessage(toPhone: string, text: string): Promise<boolean> {
     try {
+      await loadBaileys();
       if (!this.sock) {
         console.error("Baileys sendMessage Error: Socket is not initialized");
         return false;

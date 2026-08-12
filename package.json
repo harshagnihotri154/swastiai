@@ -9,7 +9,9 @@
     "build": "cd apps/frontend && npm run build",
     "build:backend": "cd apps/backend && npm run build",
     "dev:backend": "cd apps/backend && npm run dev",
-    "dev:frontend": "cd apps/frontend && npm run dev"
+    "dev:frontend": "cd apps/frontend && npm run dev",
+    "start": "cd apps/backend && npm start",
+    "start:backend": "cd apps/backend && npm start"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

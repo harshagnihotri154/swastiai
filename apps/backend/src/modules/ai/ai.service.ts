@@ -18,32 +18,32 @@ export class AIService {
     const concisePrompt = `${rawPrompt}\n\n[CRITICAL WHATSAPP FORMAT RULE]: Be extremely brief, crisp, and direct (max 1 to 3 short sentences). Avoid long explanations.`;
 
     // 1. Try Groq API (100% Free Llama 3.3 - Zero Credit Card Required!)
-    const groqKey = env.GROQ_API_KEY || process.env.GROQ_API_KEY;
-    if (groqKey) {
+    const groqKey = process.env.GROQ_API_KEY || env.GROQ_API_KEY;
+    if (groqKey && groqKey.startsWith("gsk_") && groqKey.length > 20 && !groqKey.includes("your_")) {
       try {
         return await this.generateGroqReply(userMessage, concisePrompt, groqKey, history);
-      } catch (err) {
-        console.error("⚠️ Groq API Error, attempting fallback:", err);
+      } catch (err: any) {
+        console.warn("⚠️ Groq API warning, attempting fallback:", err.message || err);
       }
     }
 
     // 2. Try Gemini API if GEMINI_API_KEY is available
     const geminiKey = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-    if (geminiKey) {
+    if (geminiKey && geminiKey.length > 20 && !geminiKey.includes("your_")) {
       try {
         return await this.generateGeminiReply(userMessage, concisePrompt, geminiKey, history);
-      } catch (err) {
-        console.error("⚠️ Gemini API Error, attempting fallback:", err);
+      } catch (err: any) {
+        console.warn("⚠️ Gemini API warning, attempting fallback:", err.message || err);
       }
     }
 
     // 3. Try OpenAI API if OPENAI_API_KEY is available
     const openAiKey = env.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-    if (openAiKey) {
+    if (openAiKey && openAiKey.startsWith("sk-") && openAiKey.length > 20 && !openAiKey.includes("your_")) {
       try {
         return await this.generateOpenAIReply(userMessage, concisePrompt, openAiKey, history);
-      } catch (err) {
-        console.error("⚠️ OpenAI API Error, attempting fallback:", err);
+      } catch (err: any) {
+        console.warn("⚠️ OpenAI API warning, attempting fallback:", err.message || err);
       }
     }
 

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: swastiai-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build:backend
+    startCommand: cd apps/backend && npm start
+    healthCheckPath: /api/v1/whatsapp/qr-code
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

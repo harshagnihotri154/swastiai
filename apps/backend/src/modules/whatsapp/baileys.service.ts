@@ -161,18 +161,24 @@ export class BaileysService {
 
             let conversation = await ConversationModel.findOne({ customerPhone: senderPhone });
             if (!conversation) {
-              conversation = new ConversationModel({ customerPhone: senderPhone, messages: [], isPaused: false });
+              conversation = await ConversationModel.findOneAndUpdate(
+                { customerPhone: senderPhone },
+                { $setOnInsert: { customerPhone: senderPhone, messages: [], isPaused: false } },
+                { upsert: true, new: true }
+              );
             }
 
-            const role = msg.key.fromMe ? "model" : "user";
-            const exists = conversation.messages.some(m => m.content === text);
-            if (!exists) {
-              conversation.messages.push({
-                role,
-                content: text,
-                timestamp: msg.messageTimestamp ? new Date(Number(msg.messageTimestamp) * 1000) : new Date()
-              });
-              await conversation.save();
+            if (conversation) {
+              const role = msg.key.fromMe ? "model" : "user";
+              const exists = conversation.messages.some(m => m.content === text);
+              if (!exists) {
+                conversation.messages.push({
+                  role,
+                  content: text,
+                  timestamp: msg.messageTimestamp ? new Date(Number(msg.messageTimestamp) * 1000) : new Date()
+                });
+                await conversation.save().catch(err => console.warn("Conversation save warning:", err.message));
+              }
             }
           }
           console.log("📚 Synced historical WhatsApp chats to MongoDB Atlas!");
@@ -208,13 +214,19 @@ export class BaileysService {
 
           let conversation = await ConversationModel.findOne({ customerPhone: senderPhone });
           if (!conversation) {
-            conversation = new ConversationModel({ customerPhone: senderPhone, messages: [], isPaused: false });
+            conversation = await ConversationModel.findOneAndUpdate(
+              { customerPhone: senderPhone },
+              { $setOnInsert: { customerPhone: senderPhone, messages: [], isPaused: false } },
+              { upsert: true, new: true }
+            );
           }
+
+          if (!conversation) continue;
 
           if (conversation.isPaused) {
             console.log(`⏸️ AI Agent is PAUSED for ${senderPhone}. Skipping automated AI reply.`);
             conversation.messages.push({ role: "user", content: text, timestamp: new Date() });
-            await conversation.save();
+            await conversation.save().catch(err => console.warn("Conversation save warning:", err.message));
             continue;
           }
 
@@ -227,7 +239,7 @@ export class BaileysService {
 
           conversation.messages.push({ role: "user", content: text, timestamp: new Date() });
           conversation.messages.push({ role: "model", content: aiReply, timestamp: new Date() });
-          await conversation.save();
+          await conversation.save().catch(err => console.warn("Conversation save warning:", err.message));
 
           console.log(`📤 Sending Baileys AI reply to ${senderPhone}: "${aiReply}"`);
           try {

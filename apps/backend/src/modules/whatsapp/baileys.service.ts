@@ -57,10 +57,10 @@ export class BaileysService {
         return `+${rawPhone}`;
       }
 
-      // 3. Fallback to active business phone line
-      return "+91-9084553059";
+      // 3. Fallback to active business phone line or raw phone
+      return this.activePhoneNumber ? `+${this.activePhoneNumber}` : (rawPhone ? `+${rawPhone}` : "");
     } catch (err) {
-      return "+91-9084553059";
+      return this.activePhoneNumber ? `+${this.activePhoneNumber}` : "";
     }
   }
 

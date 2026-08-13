@@ -31,7 +31,7 @@ router.get("/credentials", async (_req, res) => {
   try {
     let config = await AgentConfigModel.findOne({ isDefault: true });
     if (!config) {
-      config = new AgentConfigModel({ isDefault: true, userPhoneNumber: "+91-9084553059" });
+      config = new AgentConfigModel({ isDefault: true, userPhoneNumber: "" });
       await config.save();
     }
 
@@ -50,14 +50,12 @@ router.get("/credentials", async (_req, res) => {
         interaktApiKey,
         groqApiKey: env.GROQ_API_KEY || "",
         verifyToken: env.WHATSAPP_VERIFY_TOKEN,
-        agentName: config?.agentName || "Harsh Agnihotri",
+        agentName: config?.agentName || "AI Assistant",
         systemPrompt: config?.systemPrompt || env.DEFAULT_SYSTEM_PROMPT,
         baileysStatus: BaileysService.getStatus(),
-        activePhone: BaileysService.getActivePhone() || config?.userPhoneNumber,
-        userPhoneNumber: config?.userPhoneNumber,
-        phoneNumbers: config?.phoneNumbers || [
-          { label: "Primary WhatsApp Business", phone: config?.userPhoneNumber || "+91-9084553059", active: true }
-        ]
+        activePhone: BaileysService.getActivePhone() || config?.userPhoneNumber || "",
+        userPhoneNumber: config?.userPhoneNumber || "",
+        phoneNumbers: config?.phoneNumbers && config.phoneNumbers.length > 0 ? config.phoneNumbers : []
       }
     });
   } catch (err: any) {
@@ -69,7 +67,7 @@ router.get("/credentials", async (_req, res) => {
         whatsappPhoneId: env.WHATSAPP_PHONE_NUMBER_ID || "",
         groqApiKey: env.GROQ_API_KEY || "",
         verifyToken: env.WHATSAPP_VERIFY_TOKEN,
-        userPhoneNumber: "+91-9084553059"
+        userPhoneNumber: ""
       }
     });
   }

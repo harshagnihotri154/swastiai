@@ -41,7 +41,7 @@ const agentConfigSchema = new Schema<IAgentConfig>(
   {
     workspaceId: { type: Schema.Types.ObjectId, ref: "Workspace", index: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
-    userPhoneNumber: { type: String, default: "+91-9084553059" },
+    userPhoneNumber: { type: String, default: "" },
     phoneNumbers: [businessPhoneNumberSchema],
     agentName: { type: String, required: true, default: "Harsh Agnihotri" },
     role: { type: String, default: "Software Developer & AI Engineer" },

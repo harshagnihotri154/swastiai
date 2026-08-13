@@ -17,20 +17,17 @@ export const CredentialsManager: React.FC = () => {
   const [groqApiKey, setGroqApiKey] = useState('');
 
   // Multi-Number Manager State
-  const [phoneNumbers, setPhoneNumbers] = useState<any[]>([
-    { label: 'Primary WhatsApp Business', phone: '+91-9084553059', active: true },
-    { label: 'Primary Business Line', phone: '+91-9084553059', active: true }
-  ]);
+  const [phoneNumbers, setPhoneNumbers] = useState<any[]>([]);
   const [newNumberLabel, setNewNumberLabel] = useState('');
   const [newPhoneNumber, setNewPhoneNumber] = useState('');
   const [addingNumber, setAddingNumber] = useState(false);
 
-  const [quickPhone, setQuickPhone] = useState('+91-9084553059');
+  const [quickPhone, setQuickPhone] = useState('');
 
   // Option 1: Baileys Real WhatsApp Web QR & Pairing State
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [pairingCode, setPairingCode] = useState<string>('');
-  const [phoneForCode, setPhoneForCode] = useState<string>('919084553059');
+  const [phoneForCode, setPhoneForCode] = useState<string>('');
   const [generatingCode, setGeneratingCode] = useState(false);
   const [qrStatus, setQrStatus] = useState<'READY' | 'SCANNING' | 'CONNECTED'>('READY');
   const [connectedPhone, setConnectedPhone] = useState<string | null>(null);

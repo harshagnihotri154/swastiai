@@ -69,23 +69,8 @@ export const LiveInboxView: React.FC = () => {
           return prev;
         });
       } else {
-        // Fallback default sample if DB is empty
-        const defaultPhone = '+91-9084553059';
-        setConversations([
-          {
-            phone: defaultPhone,
-            name: 'Customer +91-9084553059',
-            lastMsg: 'Hi Swasti, do you have any 2BHK properties in Noida under 80 lakh?',
-            time: '10:42 AM',
-            unread: 1,
-            isHuman: false,
-            messages: [
-              { role: 'user', content: 'Hi Swasti, do you have any 2BHK properties in Noida under 80 lakh?', time: '10:41 AM' },
-              { role: 'model', content: 'Hello! 👋 We have 2BHK flats in Sector 75 (65L) and Sector 121 (72L) Noida. Would you like to schedule a site visit?', time: '10:42 AM' }
-            ]
-          }
-        ]);
-        setActiveContact((prev) => prev || defaultPhone);
+        setConversations([]);
+        setActiveContact('');
       }
     } catch (err) {
       // Keep existing state on transient error

@@ -7,6 +7,7 @@ export interface IMessage {
 }
 
 export interface IConversation extends Document {
+  userId?: Schema.Types.ObjectId;
   customerPhone: string;
   messages: IMessage[];
   isPaused: boolean;
@@ -15,7 +16,8 @@ export interface IConversation extends Document {
 
 const conversationSchema = new Schema<IConversation>(
   {
-    customerPhone: { type: String, required: true, unique: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
+    customerPhone: { type: String, required: true, index: true },
     isPaused: { type: Boolean, default: false },
     messages: [
       {

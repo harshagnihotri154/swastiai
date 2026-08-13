@@ -315,7 +315,23 @@ router.post("/whatsapp/facebook-connect", async (req, res) => {
 // 💬 Real MongoDB Live Conversations Endpoint
 router.get("/whatsapp/conversations", async (req, res) => {
   try {
-    const conversations = await ConversationModel.find().sort({ updatedAt: -1 }).limit(50);
+    const config = await AgentConfigModel.findOne({ isDefault: true });
+    const activePhone = BaileysService.getActivePhone() || config?.userPhoneNumber;
+
+    // Filter conversations for the logged in active user phone number only
+    const query: any = {};
+    if (activePhone) {
+      const cleanPhone = activePhone.replace(/[^0-9]/g, "");
+      query.$or = [
+        { customerPhone: { $regex: cleanPhone, $options: "i" } },
+        { customerPhone: activePhone }
+      ];
+    } else {
+      // If no active phone is connected for this session, return empty
+      return res.json({ success: true, conversations: [] });
+    }
+
+    const conversations = await ConversationModel.find(query).sort({ updatedAt: -1 }).limit(50);
     res.json({ success: true, conversations });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -354,7 +370,21 @@ router.post("/whatsapp/toggle-pause", async (req, res) => {
 // 📜 Real MongoDB Execution Logs Endpoint
 router.get("/whatsapp/logs", async (req, res) => {
   try {
-    const conversations = await ConversationModel.find().sort({ updatedAt: -1 }).limit(20);
+    const config = await AgentConfigModel.findOne({ isDefault: true });
+    const activePhone = BaileysService.getActivePhone() || config?.userPhoneNumber;
+
+    const query: any = {};
+    if (activePhone) {
+      const cleanPhone = activePhone.replace(/[^0-9]/g, "");
+      query.$or = [
+        { customerPhone: { $regex: cleanPhone, $options: "i" } },
+        { customerPhone: activePhone }
+      ];
+    } else {
+      return res.json({ success: true, logs: [] });
+    }
+
+    const conversations = await ConversationModel.find(query).sort({ updatedAt: -1 }).limit(20);
     const logs: any[] = [];
 
     conversations.forEach((c) => {

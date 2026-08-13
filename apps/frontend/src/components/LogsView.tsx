@@ -25,20 +25,7 @@ export const LogsView: React.FC = () => {
       if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
         setLogs(data.logs);
       } else {
-        // Sample real-time log fallback if MongoDB logs collection is empty
-        setLogs([
-          {
-            id: '1',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-            from: '+91-9084553059',
-            type: 'Live WhatsApp',
-            input: 'Hi Harsh, can you build a custom AI web app for my business?',
-            output: 'Yes, I can help you build a custom AI web app tailored to your business needs.',
-            model: 'Groq Llama 3.3 70B',
-            latency: '110ms',
-            status: '200 OK Delivered'
-          }
-        ]);
+        setLogs([]);
       }
     } catch (err) {
       // Keep existing state

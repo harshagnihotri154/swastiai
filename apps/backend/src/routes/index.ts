@@ -201,7 +201,7 @@ router.post("/credentials/save", async (req, res) => {
 // 📱 REAL WhatsApp Web QR Code Endpoint (Powered by Baileys Socket)
 router.get("/whatsapp/qr-code", (_req, res) => {
   const qrImage = BaileysService.getQR();
-  const pairingCode = BaileysService.getPairingCode() || "7492-3819";
+  const pairingCode = BaileysService.getPairingCode() || "";
   const status = BaileysService.getStatus();
 
   res.json({

@@ -62,10 +62,12 @@ export const CredentialsManager: React.FC = () => {
         }
 
         const activePhone = data.data.activePhone || data.data.userPhoneNumber;
-        if (activePhone || data.data.baileysStatus === 'CONNECTED') {
+        if (activePhone) {
           setQrStatus('CONNECTED');
-          setConnectedPhone(activePhone || '+91-9084553059');
-          setQuickPhone(activePhone || '+91-9084553059');
+          setConnectedPhone(activePhone);
+          setQuickPhone(activePhone);
+        } else if (data.data.baileysStatus === 'CONNECTED') {
+          setQrStatus('CONNECTED');
         }
       }
     } catch (err) {
@@ -88,9 +90,9 @@ export const CredentialsManager: React.FC = () => {
           const formatted = rawCode.length >= 8 ? `${rawCode.slice(0, 4)} - ${rawCode.slice(4, 8)}` : rawCode;
           setPairingCode(formatted);
         }
-        if (data.data.status === 'CONNECTED' || data.data.activePhone) {
+        if (data.data.status === 'CONNECTED' && data.data.activePhone) {
           setQrStatus('CONNECTED');
-          setConnectedPhone(data.data.activePhone || '+91-9084553059');
+          setConnectedPhone(data.data.activePhone);
         }
       }
     } catch (err) {
@@ -195,16 +197,16 @@ export const CredentialsManager: React.FC = () => {
         const res = await fetch(`${API_BASE_URL}/api/v1/whatsapp/qr-code/pair`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: phoneForCode || quickPhone || '+91-9084553059' })
+          body: JSON.stringify({ phone: phoneForCode || quickPhone || '' })
         });
         const data = await res.json();
         if (data.success) {
           setQrStatus('CONNECTED');
-          setConnectedPhone(data.phone || '+91-9084553059');
+          setConnectedPhone(data.phone || phoneForCode || quickPhone);
         }
       } catch (err) {
         setQrStatus('CONNECTED');
-        setConnectedPhone('+91-9084553059');
+        setConnectedPhone(phoneForCode || quickPhone);
       }
     }, 1000);
   };
@@ -245,17 +247,17 @@ export const CredentialsManager: React.FC = () => {
             code: 'EAAB_FB_LOGIN_SAMPLE_CODE_' + Date.now(),
             wabaId: '1098234710129',
             phoneNumberId: '1198419823362600',
-            displayPhoneNumber: quickPhone || '+91-9084553059'
+            displayPhoneNumber: quickPhone || ''
           })
         });
         const data = await res.json();
         if (data.success) {
           setFbStatus('CONNECTED');
-          setFbConnectedPhone(data.data?.phone || quickPhone || '+91-9084553059');
+          setFbConnectedPhone(data.data?.phone || quickPhone);
         }
       } catch (err) {
         setFbStatus('CONNECTED');
-        setFbConnectedPhone('+91-9084553059');
+        setFbConnectedPhone(quickPhone);
       }
     }, 1200);
   };
@@ -349,7 +351,7 @@ export const CredentialsManager: React.FC = () => {
           </div>
 
           <div className="badge badge-live">
-            <CheckCircle2 size={13} /> Active Number: {connectedPhone || '+91-9084553059'}
+            <CheckCircle2 size={13} /> Active Number: {connectedPhone || 'No active number'}
           </div>
         </div>
 

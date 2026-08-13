@@ -62,10 +62,10 @@ export const CredentialsManager: React.FC = () => {
         }
 
         const activePhone = data.data.activePhone || data.data.userPhoneNumber;
-        if (data.data.baileysStatus === 'CONNECTED' && activePhone) {
+        if (activePhone || data.data.baileysStatus === 'CONNECTED') {
           setQrStatus('CONNECTED');
-          setConnectedPhone(activePhone);
-          setQuickPhone(activePhone);
+          setConnectedPhone(activePhone || data.data.activePhone || 'Connected Phone');
+          setQuickPhone(activePhone || '');
         } else {
           setQrStatus('READY');
           setConnectedPhone(null);
@@ -91,9 +91,11 @@ export const CredentialsManager: React.FC = () => {
           const formatted = rawCode.length >= 8 ? `${rawCode.slice(0, 4)} - ${rawCode.slice(4, 8)}` : rawCode;
           setPairingCode(formatted);
         }
-        if (data.data.status === 'CONNECTED' && data.data.activePhone) {
+        if (data.data.status === 'CONNECTED' || data.data.activePhone) {
           setQrStatus('CONNECTED');
-          setConnectedPhone(data.data.activePhone);
+          if (data.data.activePhone) {
+            setConnectedPhone(data.data.activePhone);
+          }
         }
       }
     } catch (err) {
@@ -104,6 +106,10 @@ export const CredentialsManager: React.FC = () => {
   useEffect(() => {
     fetchCredentials();
     fetchQRCode();
+    const interval = setInterval(() => {
+      fetchQRCode();
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleAddPhoneNumber = async (e: React.FormEvent) => {

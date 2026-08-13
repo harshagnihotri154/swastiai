@@ -65,6 +65,42 @@ export class BaileysService {
   }
 
   /**
+   * Logout current WhatsApp session and clear auth state to allow new logins
+   */
+  static async logout(): Promise<void> {
+    try {
+      if (this.sock) {
+        try {
+          await this.sock.logout();
+        } catch (e) {}
+        try {
+          this.sock.ev.removeAllListeners("connection.update");
+          this.sock.ev.removeAllListeners("creds.update");
+          this.sock.end(undefined);
+        } catch (e) {}
+        this.sock = null;
+      }
+      this.currentQR = null;
+      this.pairingCode = null;
+      this.connectionStatus = "DISCONNECTED";
+      this.activePhoneNumber = null;
+
+      this.clearStaleSession();
+
+      // Reset default agent config connection info
+      const config = await AgentConfigModel.findOne({ isDefault: true });
+      if (config) {
+        config.userPhoneNumber = "";
+        await config.save();
+      }
+
+      console.log("🚪 Logged out WhatsApp session and cleared session data.");
+    } catch (err: any) {
+      console.error("Logout error:", err.message);
+    }
+  }
+
+  /**
    * Clear stale session keys if connection fails
    */
   static clearStaleSession(): void {

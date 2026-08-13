@@ -15,14 +15,12 @@ import { AuthModal } from './components/AuthModal';
 import { OnboardingWizardModal } from './components/OnboardingWizardModal';
 
 export function App() {
-  // Initialize viewMode and activeTab from localStorage to persist across browser refresh
+  // Initialize viewMode and activeTab from localStorage with Auth Guard check
   const [viewMode, setViewMode] = useState<'home' | 'dashboard'>(() => {
-    const savedMode = localStorage.getItem('swastiai_view_mode');
-    if (savedMode === 'dashboard' || savedMode === 'home') {
-      return savedMode;
-    }
     const token = localStorage.getItem('swastiai_token');
-    return token ? 'dashboard' : 'home';
+    if (!token) return 'home'; // Enforce authentication: default to home if not logged in
+    const savedMode = localStorage.getItem('swastiai_view_mode');
+    return savedMode === 'dashboard' ? 'dashboard' : 'home';
   });
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -33,8 +31,13 @@ export function App() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  // Sync state changes to localStorage
+  // Protected View Switcher: Prevents accessing dashboard without login
   const changeViewMode = (mode: 'home' | 'dashboard') => {
+    const token = localStorage.getItem('swastiai_token');
+    if (mode === 'dashboard' && !token && !user) {
+      setIsAuthOpen(true);
+      return;
+    }
     setViewMode(mode);
     localStorage.setItem('swastiai_view_mode', mode);
   };
@@ -54,9 +57,17 @@ export function App() {
         .then((data) => {
           if (data.success && data.user) {
             setUser(data.user);
+          } else {
+            // Invalid or expired token: purge and bounce to landing page
+            localStorage.removeItem('swastiai_token');
+            localStorage.removeItem('swastiai_view_mode');
+            setUser(null);
+            setViewMode('home');
           }
         })
         .catch(() => {});
+    } else {
+      setViewMode('home');
     }
   }, []);
 

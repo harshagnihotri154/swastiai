@@ -265,6 +265,25 @@ router.post("/whatsapp/qr-code/pair", async (req, res) => {
   }
 });
 
+// 🚪 Logout / Disconnect WhatsApp Session Endpoint
+router.post("/whatsapp/logout", async (_req, res) => {
+  try {
+    await BaileysService.logout();
+    // Re-initialize a fresh session to generate new QR / pairing code for next user
+    setTimeout(() => {
+      BaileysService.initSession(true).catch(() => {});
+    }, 1000);
+
+    res.json({
+      success: true,
+      message: "WhatsApp session logged out successfully. You can now scan QR or pair with a new WhatsApp number!",
+      status: "DISCONNECTED"
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 🔵 Option 2: 1-Click Facebook / Meta Embedded Signup Connect Endpoint
 router.post("/whatsapp/facebook-connect", async (req, res) => {
   try {

@@ -212,6 +212,31 @@ export const CredentialsManager: React.FC = () => {
     }, 1000);
   };
 
+  const handleDisconnectWhatsApp = async () => {
+    if (!window.confirm('Are you sure you want to disconnect current WhatsApp account? This will allow any other WhatsApp account to scan QR or pair.')) {
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/whatsapp/logout`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQrStatus('READY');
+        setConnectedPhone(null);
+        setQrDataUrl(null);
+        setPairingCode('');
+        alert('Disconnected successfully! You can now pair or scan with any other WhatsApp account.');
+        setTimeout(() => {
+          fetchQRCode();
+        }, 1500);
+      }
+    } catch (err) {
+      setQrStatus('READY');
+      setConnectedPhone(null);
+    }
+  };
+
   const handleFacebookConnect = async () => {
     setFbStatus('CONNECTING');
     setTimeout(async () => {
@@ -483,8 +508,25 @@ export const CredentialsManager: React.FC = () => {
             </div>
 
             {qrStatus === 'CONNECTED' && (
-              <div style={{ background: '#dcfce7', color: '#15803d', padding: '8px 16px', borderRadius: '20px', fontWeight: 800, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={18} /> Linked to {connectedPhone}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ background: '#dcfce7', color: '#15803d', padding: '8px 16px', borderRadius: '20px', fontWeight: 800, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={18} /> Linked to {connectedPhone}
+                </div>
+                <button
+                  onClick={handleDisconnectWhatsApp}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '20px',
+                    border: '1px solid #ef4444',
+                    background: '#fef2f2',
+                    color: '#dc2626',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Disconnect & Allow Other Login 🚪
+                </button>
               </div>
             )}
           </div>

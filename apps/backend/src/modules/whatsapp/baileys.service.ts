@@ -137,7 +137,7 @@ export class BaileysService {
       this.sock = makeWASocket({
         auth: state,
         printQRInTerminal: false,
-        browser: ["Swastiai AI Agent Platform", "Chrome", "1.0.0"],
+        browser: ["Ubuntu", "Chrome", "20.0.04"],
         connectTimeoutMs: 60000,
         defaultQueryTimeoutMs: 60000,
         keepAliveIntervalMs: 25000

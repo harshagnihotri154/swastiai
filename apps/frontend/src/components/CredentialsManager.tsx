@@ -62,12 +62,13 @@ export const CredentialsManager: React.FC = () => {
         }
 
         const activePhone = data.data.activePhone || data.data.userPhoneNumber;
-        if (activePhone) {
+        if (data.data.baileysStatus === 'CONNECTED' && activePhone) {
           setQrStatus('CONNECTED');
           setConnectedPhone(activePhone);
           setQuickPhone(activePhone);
-        } else if (data.data.baileysStatus === 'CONNECTED') {
-          setQrStatus('CONNECTED');
+        } else {
+          setQrStatus('READY');
+          setConnectedPhone(null);
         }
       }
     } catch (err) {

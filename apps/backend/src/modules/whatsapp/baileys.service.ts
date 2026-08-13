@@ -344,11 +344,10 @@ export class BaileysService {
       }
     } catch (err: any) {
       console.warn("Could not request Baileys pairing code:", err.message);
+      throw new Error(`WhatsApp pairing failed: ${err.message || "Ensure your phone is online and try again"}`);
     }
 
-    const fallbackCode = `${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
-    this.pairingCode = fallbackCode;
-    return fallbackCode;
+    throw new Error("WhatsApp socket not ready for pairing.");
   }
 
   static getQR(): string | null {

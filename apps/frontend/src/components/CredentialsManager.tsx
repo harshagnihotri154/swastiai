@@ -157,7 +157,10 @@ export const CredentialsManager: React.FC = () => {
   };
 
   const handleRequestPairingCode = async () => {
-    if (!phoneForCode.trim()) return;
+    if (!phoneForCode.trim()) {
+      alert('Please enter your WhatsApp phone number with country code (e.g. 919084553059).');
+      return;
+    }
     setGeneratingCode(true);
     try {
       const cleanPhone = phoneForCode.replace(/[^0-9]/g, '');
@@ -171,9 +174,11 @@ export const CredentialsManager: React.FC = () => {
         const rawCode = data.data.pairingCode.replace(/[^A-Z0-9]/gi, '');
         const formatted = rawCode.length >= 8 ? `${rawCode.slice(0, 4)} - ${rawCode.slice(4, 8)}` : rawCode;
         setPairingCode(formatted);
+      } else {
+        alert(`Could not generate pairing code: ${data.error || 'Please scan the QR code directly instead.'}`);
       }
-    } catch (err) {
-      // Fallback
+    } catch (err: any) {
+      alert(`Error requesting pairing code: ${err.message || 'Please scan the QR code.'}`);
     } finally {
       setGeneratingCode(false);
     }
@@ -190,26 +195,7 @@ export const CredentialsManager: React.FC = () => {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleSimulateQRScan = async () => {
-    setQrStatus('SCANNING');
-    setTimeout(async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/whatsapp/qr-code/pair`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: phoneForCode || quickPhone || '' })
-        });
-        const data = await res.json();
-        if (data.success) {
-          setQrStatus('CONNECTED');
-          setConnectedPhone(data.phone || phoneForCode || quickPhone);
-        }
-      } catch (err) {
-        setQrStatus('CONNECTED');
-        setConnectedPhone(phoneForCode || quickPhone);
-      }
-    }, 1000);
-  };
+
 
   const handleDisconnectWhatsApp = async () => {
     if (!window.confirm('Are you sure you want to disconnect current WhatsApp account? This will allow any other WhatsApp account to scan QR or pair.')) {
@@ -616,31 +602,6 @@ export const CredentialsManager: React.FC = () => {
                   <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>Tap <b>Settings (iPhone)</b> or <b>3 dots ⋮ (Android)</b> ➔ <b>Linked Devices</b> ➔ <b>Link with Phone Number</b> (or scan QR code).</div>
                 </div>
               </div>
-
-              {qrStatus !== 'CONNECTED' && (
-                <div style={{ marginTop: '6px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={handleSimulateQRScan}
-                    disabled={qrStatus === 'SCANNING'}
-                    style={{
-                      padding: '12px 24px',
-                      borderRadius: '24px',
-                      border: 'none',
-                      background: '#25d366',
-                      color: '#ffffff',
-                      fontWeight: 800,
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 6px 18px rgba(37, 211, 102, 0.3)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    <Smartphone size={18} /> {qrStatus === 'SCANNING' ? 'Linking Phone...' : '⚡ Click to Instant Connect Phone'}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>

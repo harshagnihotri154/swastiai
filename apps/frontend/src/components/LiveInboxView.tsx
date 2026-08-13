@@ -88,15 +88,7 @@ export const LiveInboxView: React.FC = () => {
   // Match conversation accurately regardless of phone formatting
   const currentConv =
     conversations.find((c) => normalizePhone(c.phone) === normalizePhone(activeContact)) ||
-    conversations[0] || {
-      phone: '+91-9084553059',
-      name: 'Customer',
-      lastMsg: 'No chat selected',
-      time: '',
-      unread: 0,
-      isHuman: false,
-      messages: []
-    };
+    conversations[0] || null;
 
   const msgLength = currentConv?.messages?.length || 0;
   useEffect(() => {
@@ -303,139 +295,151 @@ export const LiveInboxView: React.FC = () => {
 
         {/* Right Column: Active Chat Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', background: '#efeae2', height: '680px' }}>
-          {/* Active Chat Header */}
-          <div style={{ background: '#ffffff', padding: '14px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.9rem'
-                }}
-              >
-                <PhoneCall size={18} />
-              </div>
-              <div>
-                <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {currentConv.phone}
-                </div>
-                <div style={{ fontSize: '0.775rem', color: currentConv.isHuman ? '#dc2626' : '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {currentConv.isHuman ? (
-                    <>
-                      <ShieldAlert size={13} /> AI Agent Paused — Human Takeover Active
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} /> AI Agent Active (Groq Llama 3.3 70B)
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Toggle Pause / Resume Button */}
-            <button
-              onClick={handleToggleTakeover}
-              style={{
-                padding: '9px 18px',
-                borderRadius: '10px',
-                border: 'none',
-                background: currentConv.isHuman ? '#2563eb' : '#dc2626',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {currentConv.isHuman ? <Play size={15} /> : <Pause size={15} />}
-              {currentConv.isHuman ? 'Resume AI Agent' : 'Pause AI & Take Over Chat'}
-            </button>
-          </div>
-
-          {/* Chat Messages Stream (Scrollable) */}
-          <div style={{ flex: 1, padding: '24px', overflowY: 'auto', height: '500px', display: 'flex', flexDirection: 'column', gap: '14px', scrollbarWidth: 'thin' }}>
-            {currentConv.messages && currentConv.messages.length > 0 ? (
-              currentConv.messages.map((msg, index) => {
-                const isUser = msg.role === 'user';
-                const isHuman = msg.role === 'human';
-
-                return (
+          {currentConv ? (
+            <>
+              {/* Active Chat Header */}
+              <div style={{ background: '#ffffff', padding: '14px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div
-                    key={index}
                     style={{
-                      alignSelf: isUser ? 'flex-start' : 'flex-end',
-                      maxWidth: '75%',
-                      background: isUser ? '#ffffff' : isHuman ? '#dbeafe' : '#d9fdd3',
-                      color: '#111b21',
-                      padding: '12px 16px',
-                      borderRadius: isUser ? '0 14px 14px 14px' : '14px 0 14px 14px',
-                      fontSize: '0.925rem',
-                      lineHeight: 1.5,
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                      border: isHuman ? '1px solid #93c5fd' : 'none'
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.9rem'
                     }}
                   >
-                    <div style={{ fontSize: '0.725rem', fontWeight: 800, color: isUser ? '#2563eb' : isHuman ? '#1e3a8a' : '#15803d', marginBottom: '4px' }}>
-                      {isUser ? 'Customer (WhatsApp)' : isHuman ? '👤 Human Agent Reply' : '🤖 Swasti AI Agent'}
+                    <PhoneCall size={18} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {currentConv.phone}
                     </div>
-                    {msg.content}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '6px', fontSize: '0.675rem', color: '#667781' }}>
-                      {msg.time} {isUser ? null : <CheckCheck size={14} color="#53bdeb" style={{ marginLeft: '4px' }} />}
+                    <div style={{ fontSize: '0.775rem', color: currentConv.isHuman ? '#dc2626' : '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {currentConv.isHuman ? (
+                        <>
+                          <ShieldAlert size={13} /> AI Agent Paused — Human Takeover Active
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} /> AI Agent Active (Groq Llama 3.3 70B)
+                        </>
+                      )}
                     </div>
                   </div>
-                );
-              })
-            ) : (
-              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-                <MessageSquare size={42} color="#2563eb" style={{ margin: '0 auto 12px', display: 'block', opacity: 0.8 }} />
-                <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>No chat messages for {currentConv.phone}</div>
-                <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-                  Messages sent to or received from this customer will appear here in real-time.
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
 
-          {/* Reply Form */}
-          <form onSubmit={handleSendReply} style={{ background: '#f0f2f5', padding: '16px 24px', display: 'flex', gap: '12px', borderTop: '1px solid #cbd5e1' }}>
-            <input
-              type="text"
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder={
-                currentConv.isHuman
-                  ? 'Type direct reply to customer on WhatsApp...'
-                  : 'Type reply (sending automatically pauses AI & takes over chat)...'
-              }
-              style={{
-                flex: 1,
-                padding: '12px 18px',
-                borderRadius: '12px',
-                border: '1px solid #cbd5e1',
-                background: '#ffffff',
-                color: '#0f172a',
-                fontSize: '0.925rem',
-                outline: 'none',
-                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)'
-              }}
-            />
-            <button type="submit" className="btn-primary" style={{ padding: '12px 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
-              <Send size={16} /> Send to WhatsApp
-            </button>
-          </form>
+                {/* Toggle Pause / Resume Button */}
+                <button
+                  onClick={handleToggleTakeover}
+                  style={{
+                    padding: '9px 18px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: currentConv.isHuman ? '#2563eb' : '#dc2626',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {currentConv.isHuman ? <Play size={15} /> : <Pause size={15} />}
+                  {currentConv.isHuman ? 'Resume AI Agent' : 'Pause AI & Take Over Chat'}
+                </button>
+              </div>
+
+              {/* Chat Messages Stream (Scrollable) */}
+              <div style={{ flex: 1, padding: '24px', overflowY: 'auto', height: '500px', display: 'flex', flexDirection: 'column', gap: '14px', scrollbarWidth: 'thin' }}>
+                {currentConv.messages && currentConv.messages.length > 0 ? (
+                  currentConv.messages.map((msg, index) => {
+                    const isUser = msg.role === 'user';
+                    const isHuman = msg.role === 'human';
+
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          alignSelf: isUser ? 'flex-start' : 'flex-end',
+                          maxWidth: '75%',
+                          background: isUser ? '#ffffff' : isHuman ? '#dbeafe' : '#d9fdd3',
+                          color: '#111b21',
+                          padding: '12px 16px',
+                          borderRadius: isUser ? '0 14px 14px 14px' : '14px 0 14px 14px',
+                          fontSize: '0.925rem',
+                          lineHeight: 1.5,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                          border: isHuman ? '1px solid #93c5fd' : 'none'
+                        }}
+                      >
+                        <div style={{ fontSize: '0.725rem', fontWeight: 800, color: isUser ? '#2563eb' : isHuman ? '#1e3a8a' : '#15803d', marginBottom: '4px' }}>
+                          {isUser ? 'Customer (WhatsApp)' : isHuman ? '👤 Human Agent Reply' : '🤖 Swasti AI Agent'}
+                        </div>
+                        {msg.content}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '6px', fontSize: '0.675rem', color: '#667781' }}>
+                          {msg.time} {isUser ? null : <CheckCheck size={14} color="#53bdeb" style={{ marginLeft: '4px' }} />}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
+                    <MessageSquare size={42} color="#2563eb" style={{ margin: '0 auto 12px', display: 'block', opacity: 0.8 }} />
+                    <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>No chat messages for {currentConv.phone}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
+                      Messages sent to or received from this customer will appear here in real-time.
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Reply Form */}
+              <form onSubmit={handleSendReply} style={{ background: '#f0f2f5', padding: '16px 24px', display: 'flex', gap: '12px', borderTop: '1px solid #cbd5e1' }}>
+                <input
+                  type="text"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder={
+                    currentConv.isHuman
+                      ? 'Type direct reply to customer on WhatsApp...'
+                      : 'Type reply (sending automatically pauses AI & takes over chat)...'
+                  }
+                  style={{
+                    flex: 1,
+                    padding: '12px 18px',
+                    borderRadius: '12px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    fontSize: '0.925rem',
+                    outline: 'none',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)'
+                  }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '12px 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
+                  <Send size={16} /> Send to WhatsApp
+                </button>
+              </form>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', padding: '40px', textAlign: 'center' }}>
+              <MessageSquare size={48} color="#2563eb" style={{ marginBottom: '16px', opacity: 0.7 }} />
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>No Conversations Found</h3>
+              <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '6px', maxWidth: '360px' }}>
+                Connect your WhatsApp account in the Credentials Studio or send a WhatsApp message to start receiving live chats here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

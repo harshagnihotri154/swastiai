@@ -195,11 +195,12 @@ export class BaileysService {
             const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
             if (!text.trim()) continue;
 
-            let conversation = await ConversationModel.findOne({ customerPhone: senderPhone });
+            const bizPhone = this.activePhoneNumber ? `+${this.activePhoneNumber}` : "+91-9084553059";
+            let conversation = await ConversationModel.findOne({ businessPhone: bizPhone, customerPhone: senderPhone });
             if (!conversation) {
               conversation = await ConversationModel.findOneAndUpdate(
-                { customerPhone: senderPhone },
-                { $setOnInsert: { customerPhone: senderPhone, messages: [], isPaused: false } },
+                { businessPhone: bizPhone, customerPhone: senderPhone },
+                { $setOnInsert: { businessPhone: bizPhone, customerPhone: senderPhone, customerName: msg.pushName || "", messages: [], isPaused: false } },
                 { upsert: true, new: true }
               );
             }
@@ -248,11 +249,12 @@ export class BaileysService {
             systemPrompt += `\n\n[Business Knowledge Base]\n${knowledgeContext}`;
           }
 
-          let conversation = await ConversationModel.findOne({ customerPhone: senderPhone });
+          const bizPhone = this.activePhoneNumber ? `+${this.activePhoneNumber}` : "+91-9084553059";
+          let conversation = await ConversationModel.findOne({ businessPhone: bizPhone, customerPhone: senderPhone });
           if (!conversation) {
             conversation = await ConversationModel.findOneAndUpdate(
-              { customerPhone: senderPhone },
-              { $setOnInsert: { customerPhone: senderPhone, messages: [], isPaused: false } },
+              { businessPhone: bizPhone, customerPhone: senderPhone },
+              { $setOnInsert: { businessPhone: bizPhone, customerPhone: senderPhone, customerName: msg.pushName || "", messages: [], isPaused: false } },
               { upsert: true, new: true }
             );
           }
@@ -316,6 +318,36 @@ export class BaileysService {
       const jid = `${cleanTo}@s.whatsapp.net`;
       await this.sock.sendMessage(jid, { text });
       console.log(`📤 Baileys direct message sent to ${cleanTo} (${jid}): "${text}"`);
+
+      // Save sent message to MongoDB conversation
+      const senderPhone = `+${cleanTo}`;
+      const bizPhone = this.activePhoneNumber ? `+${this.activePhoneNumber}` : "+91-9084553059";
+      let conversation = await ConversationModel.findOne({
+        businessPhone: bizPhone,
+        $or: [
+          { customerPhone: senderPhone },
+          { customerPhone: toPhone },
+          { customerPhone: { $regex: cleanTo, $options: "i" } }
+        ]
+      });
+
+      if (!conversation) {
+        conversation = new ConversationModel({
+          businessPhone: bizPhone,
+          customerPhone: senderPhone,
+          messages: [],
+          isPaused: true
+        });
+      }
+
+      conversation.messages.push({
+        role: "human",
+        content: text,
+        timestamp: new Date()
+      });
+      conversation.isPaused = true;
+      await conversation.save().catch(err => console.warn("Save sent msg warning:", err.message));
+
       return true;
     } catch (err: any) {
       console.error("Baileys sendMessage Error:", err.message);

@@ -49,12 +49,13 @@ export const LiveInboxView: React.FC = () => {
           }));
 
           const last = formattedMsgs[formattedMsgs.length - 1];
-          const clean = c.customerPhone.replace(/[^0-9]/g, '');
-          const displayPhone = clean.length >= 10 ? `+${clean}` : c.customerPhone;
+          const clean = c.customerPhone ? c.customerPhone.replace(/[^0-9]/g, '') : '';
+          const displayPhone = clean ? (clean.length >= 10 ? `+${clean}` : clean) : c.customerPhone || 'Unknown Customer';
+          const nameLabel = c.customerName && c.customerName.trim() ? c.customerName : displayPhone;
 
           return {
             phone: c.customerPhone,
-            name: `Customer ${displayPhone.slice(-10)}`,
+            name: nameLabel,
             lastMsg: last ? last.content : 'No messages yet',
             time: last && last.time ? last.time : 'Just now',
             unread: 0,
@@ -85,10 +86,10 @@ export const LiveInboxView: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Match conversation accurately regardless of phone formatting
-  const currentConv =
-    conversations.find((c) => normalizePhone(c.phone) === normalizePhone(activeContact)) ||
-    conversations[0] || null;
+  // Match conversation accurately regardless of phone formatting only when explicit contact is selected
+  const currentConv = activeContact
+    ? conversations.find((c) => normalizePhone(c.phone) === normalizePhone(activeContact)) || null
+    : null;
 
   const msgLength = currentConv?.messages?.length || 0;
   useEffect(() => {
@@ -100,6 +101,7 @@ export const LiveInboxView: React.FC = () => {
   };
 
   const handleToggleTakeover = async () => {
+    if (!currentConv) return;
     const targetPhone = currentConv.phone;
     const nextPaused = !currentConv.isHuman;
 
@@ -118,7 +120,7 @@ export const LiveInboxView: React.FC = () => {
 
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || !currentConv) return;
 
     const sentText = replyText.trim();
     const targetPhone = currentConv.phone;
@@ -190,8 +192,10 @@ export const LiveInboxView: React.FC = () => {
         style={{
           padding: 0,
           display: 'grid',
-          gridTemplateColumns: '360px 1fr',
-          minHeight: '680px',
+          gridTemplateColumns: '340px 1fr',
+          height: 'calc(100vh - 180px)',
+          minHeight: '550px',
+          maxHeight: '750px',
           overflow: 'hidden',
           background: '#ffffff',
           borderRadius: '16px',
@@ -200,9 +204,9 @@ export const LiveInboxView: React.FC = () => {
         }}
       >
         {/* Left Column: Conversations Sidebar */}
-        <div style={{ borderRight: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexDirection: 'column', height: '680px' }}>
+        <div style={{ borderRight: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
           {/* Search Header */}
-          <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', background: '#ffffff' }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', background: '#ffffff', flexShrink: 0 }}>
             <div style={{ position: 'relative' }}>
               <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
               <input
@@ -217,10 +221,10 @@ export const LiveInboxView: React.FC = () => {
           </div>
 
           {/* Conversations Items List (Scrollable) */}
-          <div style={{ flex: 1, overflowY: 'auto', maxHeight: '600px', scrollbarWidth: 'thin' }}>
+          <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin' }}>
             {filteredConversations.length > 0 ? (
               filteredConversations.map((c) => {
-                const isSelected = normalizePhone(c.phone) === normalizePhone(currentConv.phone);
+                const isSelected = !!currentConv && normalizePhone(c.phone) === normalizePhone(currentConv.phone);
                 const initial = c.phone ? c.phone.replace(/[^0-9]/g, '').slice(-2) : 'C';
 
                 return (
@@ -260,7 +264,7 @@ export const LiveInboxView: React.FC = () => {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
                           <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {c.phone}
+                            {c.name || c.phone}
                           </span>
                           <span style={{ fontSize: '0.725rem', color: '#94a3b8', flexShrink: 0 }}>{c.time}</span>
                         </div>
@@ -294,11 +298,11 @@ export const LiveInboxView: React.FC = () => {
         </div>
 
         {/* Right Column: Active Chat Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#efeae2', height: '680px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#efeae2', height: '100%', overflow: 'hidden' }}>
           {currentConv ? (
             <>
               {/* Active Chat Header */}
-              <div style={{ background: '#ffffff', padding: '14px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ background: '#ffffff', padding: '14px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div
                     style={{
@@ -318,7 +322,7 @@ export const LiveInboxView: React.FC = () => {
                   </div>
                   <div>
                     <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {currentConv.phone}
+                      {currentConv.name || currentConv.phone}
                     </div>
                     <div style={{ fontSize: '0.775rem', color: currentConv.isHuman ? '#dc2626' : '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {currentConv.isHuman ? (
@@ -359,7 +363,7 @@ export const LiveInboxView: React.FC = () => {
               </div>
 
               {/* Chat Messages Stream (Scrollable) */}
-              <div style={{ flex: 1, padding: '24px', overflowY: 'auto', height: '500px', display: 'flex', flexDirection: 'column', gap: '14px', scrollbarWidth: 'thin' }}>
+              <div style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', scrollbarWidth: 'thin' }}>
                 {currentConv.messages && currentConv.messages.length > 0 ? (
                   currentConv.messages.map((msg, index) => {
                     const isUser = msg.role === 'user';
@@ -404,7 +408,7 @@ export const LiveInboxView: React.FC = () => {
               </div>
 
               {/* Reply Form */}
-              <form onSubmit={handleSendReply} style={{ background: '#f0f2f5', padding: '16px 24px', display: 'flex', gap: '12px', borderTop: '1px solid #cbd5e1' }}>
+              <form onSubmit={handleSendReply} style={{ background: '#f0f2f5', padding: '16px 24px', display: 'flex', gap: '12px', borderTop: '1px solid #cbd5e1', flexShrink: 0 }}>
                 <input
                   type="text"
                   value={replyText}
@@ -432,12 +436,28 @@ export const LiveInboxView: React.FC = () => {
               </form>
             </>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', padding: '40px', textAlign: 'center' }}>
-              <MessageSquare size={48} color="#2563eb" style={{ marginBottom: '16px', opacity: 0.7 }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>No Conversations Found</h3>
-              <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '6px', maxWidth: '360px' }}>
-                Connect your WhatsApp account in the Credentials Studio or send a WhatsApp message to start receiving live chats here.
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', padding: '40px', textAlign: 'center', background: '#f0f2f5', borderLeft: '1px solid #e2e8f0' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#dcf8c6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                <MessageSquare size={38} color="#075e54" />
+              </div>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#111b21', margin: 0 }}>
+                SwastiAI WhatsApp Web
+              </h3>
+              <p style={{ fontSize: '0.925rem', color: '#667781', marginTop: '10px', maxWidth: '440px', lineHeight: 1.6 }}>
+                {conversations.length > 0
+                  ? 'Select a contact from the list on the left to view the live chat history, send messages, or toggle AI takeover.'
+                  : loading
+                  ? 'Connecting to live WhatsApp socket and loading contacts...'
+                  : 'No active conversations found for your logged-in WhatsApp account. Pair your device in Credentials Studio or send a WhatsApp message to start.'}
               </p>
+
+              {conversations.length === 0 && !loading && (
+                <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+                  <button onClick={fetchRealConversations} className="btn-secondary" style={{ padding: '10px 18px', fontSize: '0.875rem' }}>
+                    <RefreshCw size={15} style={{ marginRight: '6px' }} /> Refresh Contacts
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

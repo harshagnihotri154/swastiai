@@ -65,7 +65,7 @@ export const LogsView: React.FC = () => {
             <thead>
               <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                 <th style={{ padding: '12px 16px' }}>Timestamp</th>
-                <th style={{ padding: '12px 16px' }}>Customer Phone</th>
+                <th style={{ padding: '12px 16px' }}>Customer Name / Phone</th>
                 <th style={{ padding: '12px 16px' }}>User Question</th>
                 <th style={{ padding: '12px 16px' }}>AI Response</th>
                 <th style={{ padding: '12px 16px' }}>Engine / Speed</th>

@@ -312,26 +312,27 @@ router.post("/whatsapp/facebook-connect", async (req, res) => {
   }
 });
 
-// 💬 Real MongoDB Live Conversations Endpoint
+// 💬 Real MongoDB Live Conversations Endpoint (Strictly scoped to active logged-in WhatsApp business line)
 router.get("/whatsapp/conversations", async (req, res) => {
   try {
     const config = await AgentConfigModel.findOne({ isDefault: true });
     const activePhone = BaileysService.getActivePhone() || config?.userPhoneNumber;
+    const isConnected = BaileysService.getStatus() === "CONNECTED";
 
-    // Filter conversations for the logged in active user phone number only
-    const query: any = {};
-    if (activePhone) {
-      const cleanPhone = activePhone.replace(/[^0-9]/g, "");
-      query.$or = [
-        { customerPhone: { $regex: cleanPhone, $options: "i" } },
-        { customerPhone: activePhone }
-      ];
-    } else {
-      // If no active phone is connected for this session, return empty
+    if (!isConnected || !activePhone) {
       return res.json({ success: true, conversations: [] });
     }
 
-    const conversations = await ConversationModel.find(query).sort({ updatedAt: -1 }).limit(50);
+    const cleanPhone = activePhone.replace(/[^0-9]/g, "");
+
+    // Query strictly for conversations owned by this logged-in business WhatsApp line
+    const conversations = await ConversationModel.find({
+      $or: [
+        { businessPhone: { $regex: cleanPhone, $options: "i" } },
+        { businessPhone: activePhone }
+      ]
+    }).sort({ updatedAt: -1 }).limit(50);
+
     res.json({ success: true, conversations });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -346,9 +347,21 @@ router.post("/whatsapp/toggle-pause", async (req, res) => {
       return res.status(400).json({ success: false, error: "Phone number is required" });
     }
 
-    let conversation = await ConversationModel.findOne({ customerPhone: phone });
+    const config = await AgentConfigModel.findOne({ isDefault: true });
+    const activePhone = BaileysService.getActivePhone() || config?.userPhoneNumber || "+91-9084553059";
+
+    let conversation = await ConversationModel.findOne({
+      businessPhone: activePhone,
+      customerPhone: phone
+    });
+
     if (!conversation) {
-      conversation = new ConversationModel({ customerPhone: phone, messages: [], isPaused: isPaused !== undefined ? !!isPaused : true });
+      conversation = new ConversationModel({
+        businessPhone: activePhone,
+        customerPhone: phone,
+        messages: [],
+        isPaused: isPaused !== undefined ? !!isPaused : true
+      });
     } else {
       conversation.isPaused = isPaused !== undefined ? !!isPaused : !conversation.isPaused;
     }
@@ -367,22 +380,24 @@ router.post("/whatsapp/toggle-pause", async (req, res) => {
   }
 });
 
-// 📜 Real MongoDB Execution Logs Endpoint
+// 📜 Real MongoDB Execution Logs Endpoint (Strictly scoped to active business line)
 router.get("/whatsapp/logs", async (req, res) => {
   try {
     const config = await AgentConfigModel.findOne({ isDefault: true });
     const activePhone = BaileysService.getActivePhone() || config?.userPhoneNumber;
+    const isConnected = BaileysService.getStatus() === "CONNECTED";
 
-    const query: any = {};
-    if (activePhone) {
-      const cleanPhone = activePhone.replace(/[^0-9]/g, "");
-      query.$or = [
-        { customerPhone: { $regex: cleanPhone, $options: "i" } },
-        { customerPhone: activePhone }
-      ];
-    } else {
+    if (!isConnected || !activePhone) {
       return res.json({ success: true, logs: [] });
     }
+
+    const cleanPhone = activePhone.replace(/[^0-9]/g, "");
+    const query = {
+      $or: [
+        { businessPhone: { $regex: cleanPhone, $options: "i" } },
+        { businessPhone: activePhone }
+      ]
+    };
 
     const conversations = await ConversationModel.find(query).sort({ updatedAt: -1 }).limit(20);
     const logs: any[] = [];
@@ -394,10 +409,14 @@ router.get("/whatsapp/logs", async (req, res) => {
           const userMsg = msgs[i];
           const nextModelMsg = msgs[i + 1] && (msgs[i + 1].role as string !== "user") ? msgs[i + 1] : null;
 
+          const displayName = c.customerName && c.customerName.trim() ? `${c.customerName} (${c.customerPhone})` : c.customerPhone;
+
           logs.push({
             id: `${c._id}_${i}`,
             time: userMsg.timestamp ? new Date(userMsg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "Just now",
-            from: c.customerPhone,
+            from: displayName,
+            customerName: c.customerName || "",
+            customerPhone: c.customerPhone,
             type: "Live WhatsApp",
             input: userMsg.content,
             output: nextModelMsg ? nextModelMsg.content : "AI generated response",

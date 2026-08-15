@@ -252,11 +252,18 @@ export class BaileysService {
           const bizPhone = this.activePhoneNumber ? `+${this.activePhoneNumber}` : "+91-9084553059";
           let conversation = await ConversationModel.findOne({ businessPhone: bizPhone, customerPhone: senderPhone });
           if (!conversation) {
-            conversation = await ConversationModel.findOneAndUpdate(
-              { businessPhone: bizPhone, customerPhone: senderPhone },
-              { $setOnInsert: { businessPhone: bizPhone, customerPhone: senderPhone, customerName: msg.pushName || "", messages: [], isPaused: false } },
-              { upsert: true, new: true }
-            );
+            try {
+              conversation = new ConversationModel({
+                businessPhone: bizPhone,
+                customerPhone: senderPhone,
+                customerName: msg.pushName || "",
+                messages: [],
+                isPaused: false
+              });
+              await conversation.save();
+            } catch (createErr) {
+              conversation = await ConversationModel.findOne({ customerPhone: senderPhone });
+            }
           }
 
           if (!conversation) continue;

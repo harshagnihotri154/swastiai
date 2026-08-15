@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bot, Zap, CheckCircle2, MessageSquare, Cpu, ArrowUpRight, Sparkles } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 interface DashboardOverviewProps {
   onNavigateToConfig: () => void;
@@ -11,23 +12,50 @@ interface DashboardOverviewProps {
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onNavigateToConfig,
   onNavigateToKnowledge,
-  onLaunchWizard,
-  user
+  onLaunchWizard
 }) => {
+  const [statsData, setStatsData] = useState({
+    totalMessages: 0,
+    avgLatency: '0 ms',
+    successRate: '100%',
+    activeModel: 'Llama 3.3 70B'
+  });
+  const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboardStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/dashboard/stats`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setStatsData({
+          totalMessages: data.data.totalMessages || 0,
+          avgLatency: data.data.avgLatency || '0 ms',
+          successRate: data.data.successRate || '100%',
+          activeModel: data.data.activeModel || 'Llama 3.3 70B'
+        });
+        if (data.data.recentLogs) {
+          setRecentLogs(data.data.recentLogs);
+        }
+      }
+    } catch (err) {
+      // Fallback
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardStats();
+    const interval = setInterval(fetchDashboardStats, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const stats = [
-    { title: 'Total Messages Handled', value: '1,428', change: '+24% today', icon: MessageSquare, color: '#2563eb' },
-    { title: 'Avg AI Latency', value: '120 ms', change: 'Ultra-fast (Groq)', icon: Zap, color: '#7c3aed' },
-    { title: 'Delivery Success Rate', value: '99.8%', change: 'Meta WhatsApp API', icon: CheckCircle2, color: '#059669' },
-    { title: 'Active AI Models', value: 'Llama 3.3 70B', change: 'Gemini + OpenAI ready', icon: Cpu, color: '#db2777' },
-  ];
-
-  // Dynamic user phone number
-  const userPhone = user?.phone || user?.email || "+91-9084553059";
-
-  const recentLogs = [
-    { from: userPhone, prompt: 'Hi Swastiai! What is 12 times 12?', reply: 'Hello! 12 times 12 is 144.', latency: '0.11s', status: 'Delivered' },
-    { from: userPhone, prompt: 'Tell me about Swastiai platform', reply: 'Swastiai is an automated AI business assistant for WhatsApp...', latency: '0.14s', status: 'Delivered' },
-    { from: userPhone, prompt: 'Can you help with customer support?', reply: 'Yes! I can handle customer inquiries 24/7 automatically.', latency: '0.09s', status: 'Delivered' },
+    { title: 'Total Messages Handled', value: statsData.totalMessages.toLocaleString(), change: 'Live WhatsApp Count', icon: MessageSquare, color: '#2563eb' },
+    { title: 'Avg AI Latency', value: statsData.avgLatency, change: 'Ultra-fast (Groq)', icon: Zap, color: '#7c3aed' },
+    { title: 'Delivery Success Rate', value: statsData.successRate, change: 'Meta WhatsApp API', icon: CheckCircle2, color: '#059669' },
+    { title: 'Active AI Models', value: statsData.activeModel, change: 'Gemini + Groq Llama 3.3', icon: Cpu, color: '#db2777' },
   ];
 
   return (
@@ -152,19 +180,27 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {recentLogs.map((log, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', color: '#1e293b' }}>
-                  <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'monospace' }}>{log.from}</td>
-                  <td style={{ padding: '14px 16px', color: '#475569' }}>{log.prompt}</td>
-                  <td style={{ padding: '14px 16px', fontWeight: 500, maxWidth: '300px' }}>{log.reply}</td>
-                  <td style={{ padding: '14px 16px', color: '#7c3aed', fontWeight: 700 }}>{log.latency}</td>
-                  <td style={{ padding: '14px 16px' }}>
-                    <span style={{ backgroundColor: 'rgba(5, 150, 105, 0.1)', color: '#059669', padding: '4px 10px', borderRadius: '12px', fontWeight: 700, fontSize: '0.75rem' }}>
-                      {log.status}
-                    </span>
+              {recentLogs.length > 0 ? (
+                recentLogs.map((log, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', color: '#1e293b' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'monospace' }}>{log.from}</td>
+                    <td style={{ padding: '14px 16px', color: '#475569' }}>{log.prompt}</td>
+                    <td style={{ padding: '14px 16px', fontWeight: 500, maxWidth: '300px' }}>{log.reply}</td>
+                    <td style={{ padding: '14px 16px', color: '#7c3aed', fontWeight: 700 }}>{log.latency}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ backgroundColor: 'rgba(5, 150, 105, 0.1)', color: '#059669', padding: '4px 10px', borderRadius: '12px', fontWeight: 700, fontSize: '0.75rem' }}>
+                        {log.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#64748b', fontSize: '0.875rem' }}>
+                    {loading ? 'Loading live logs...' : 'No WhatsApp messages recorded yet. Connect WhatsApp and send a message to start receiving real live logs!'}
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

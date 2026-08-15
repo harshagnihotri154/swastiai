@@ -3,10 +3,10 @@ import { Save, Sliders, RefreshCw, Wand2, Smartphone, Send, MessageSquare, Bot }
 import { API_BASE_URL } from '../config/api';
 
 export const AgentConfigurator: React.FC = () => {
-  const [userPhone, setUserPhone] = useState('+91-9084553059');
-  const [agentName, setAgentName] = useState('Harsh Agnihotri (Software Developer)');
+  const [userPhone, setUserPhone] = useState('');
+  const [agentName, setAgentName] = useState('SwastiAI Assistant');
   const [systemPrompt, setSystemPrompt] = useState(
-    "You are Harsh Agnihotri, a skilled Software Developer & AI Engineer. Speak warmly, smartly, and professionally like Harsh Agnihotri on WhatsApp. Help clients with software development, AI solutions, web/app inquiries, and tech project consultations. Keep your responses short (1-2 sentences), crisp, and direct."
+    "You are a helpful AI Customer Support Agent. Speak warmly and professionally on WhatsApp. Help customers with product inquiries and booking questions. Keep your responses short (1-2 sentences), crisp, and direct."
   );
 
   // Business Prompt Generator Helper State
@@ -17,10 +17,10 @@ export const AgentConfigurator: React.FC = () => {
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // 🧪 Live Playground Sandbox Chat State
-  const [sandboxQuery, setSandboxQuery] = useState('Hi Harsh, what services do you offer?');
+  const [sandboxQuery, setSandboxQuery] = useState('Hi, what services do you offer?');
   const [sandboxChat, setSandboxChat] = useState<Array<{ sender: 'user' | 'agent'; text: string }>>([
-    { sender: 'user', text: 'Hi Harsh, who are you?' },
-    { sender: 'agent', text: 'Hey there! I am Harsh Agnihotri, Software Developer & AI Engineer. How can I help you today?' }
+    { sender: 'user', text: 'Hi, who are you?' },
+    { sender: 'agent', text: 'Hey there! I am your SwastiAI Assistant. How can I help you today?' }
   ]);
   const [testing, setTesting] = useState(false);
 
@@ -32,9 +32,9 @@ export const AgentConfigurator: React.FC = () => {
       if (data.success && data.data) {
         if (data.data.systemPrompt) setSystemPrompt(data.data.systemPrompt);
         if (data.data.agentName) setAgentName(data.data.agentName);
-        if (data.data.userPhoneNumber || data.data.activePhone) {
-          setUserPhone(data.data.userPhoneNumber || data.data.activePhone);
-        }
+        
+        const active = data.data.activePhone || data.data.userPhoneNumber || '';
+        setUserPhone(active);
       }
     } catch (err) {
       // Keep existing state

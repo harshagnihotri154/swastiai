@@ -12,8 +12,6 @@ import { HowToUseView } from './components/HowToUseView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { LiveInboxView } from './components/LiveInboxView';
 import { AuthModal } from './components/AuthModal';
-import { OnboardingWizardModal } from './components/OnboardingWizardModal';
-
 export function App() {
   // Initialize viewMode and activeTab from localStorage with Auth Guard check
   const [viewMode, setViewMode] = useState<'home' | 'dashboard'>(() => {
@@ -28,7 +26,6 @@ export function App() {
   });
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   // Protected View Switcher: Prevents accessing dashboard without login
@@ -74,7 +71,6 @@ export function App() {
   const handleAuthSuccess = (userData: any) => {
     setUser(userData);
     changeViewMode('dashboard');
-    setIsWizardOpen(true); // Automatically trigger 60-Second Setup Wizard post signup!
   };
 
   const handleLogout = () => {
@@ -83,12 +79,6 @@ export function App() {
     localStorage.removeItem('swastiai_active_tab');
     setUser(null);
     changeViewMode('home');
-  };
-
-  const handleWizardComplete = (wizardData: any) => {
-    setIsWizardOpen(false);
-    changeActiveTab('overview');
-    alert(`🎉 Setup Complete! Your WhatsApp AI Employee '${wizardData.agentName || "Harsh Agnihotri"}' is live!`);
   };
 
   return (
@@ -115,7 +105,6 @@ export function App() {
                 <DashboardOverview
                   onNavigateToKnowledge={() => changeActiveTab('knowledge')}
                   onNavigateToConfig={() => changeActiveTab('agent')}
-                  onLaunchWizard={() => setIsWizardOpen(true)}
                   user={user}
                 />
               )}
@@ -149,13 +138,6 @@ export function App() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={handleAuthSuccess}
-      />
-
-      {/* Onboarding 3-Step Setup Wizard Modal */}
-      <OnboardingWizardModal
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        onComplete={handleWizardComplete}
       />
     </>
   );

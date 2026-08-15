@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Bot, Mail, Lock, User, ArrowRight, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bot, Mail, Lock, User, ArrowRight, X, KeyRound, CheckCircle2, RotateCcw } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 
 interface AuthModalProps {
@@ -9,16 +9,113 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState<'otp' | 'password'>('otp');
+  const [step, setStep] = useState<'email' | 'otp_verify'>('email');
+  const [isLogin] = useState(true);
+
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+
   const [error, setError] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // ⏱️ Resend Countdown State (120 seconds)
+  const [timer, setTimer] = useState(120);
+  const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (step === 'otp_verify' && timer > 0) {
+      setCanResend(false);
+      interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, timer]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Step 1: Request 6-digit OTP Email
+  const handleSendOTP = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!email.trim() || loading) return;
+
+    setError('');
+    setInfoMsg('');
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to send OTP code');
+      }
+
+      setStep('otp_verify');
+      setTimer(120);
+      setCanResend(false);
+
+      if (data.devOtp) {
+        setInfoMsg(`[Dev Mode] Verification code: ${data.devOtp}`);
+      } else {
+        setInfoMsg(`Verification code sent to ${email.trim()}`);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error sending verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Verify 6-digit OTP
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp.trim() || loading) return;
+
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), otp: otp.trim() })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'OTP verification failed');
+      }
+
+      localStorage.setItem('swastiai_token', data.token);
+      onSuccess(data.user, data.token);
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Invalid verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Legacy password fallback handler
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -33,15 +130,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         body: JSON.stringify(payload)
       });
 
-      let data: any = {};
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        throw new Error(text.substring(0, 120) || `Server error (${res.status})`);
-      }
-
+      const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Authentication failed');
       }
@@ -109,10 +198,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <Bot size={28} color="#ffffff" />
           </div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>
-            {isLogin ? 'Welcome Back to Swastiai' : 'Create Swastiai Account'}
+            {authMode === 'otp'
+              ? (step === 'email' ? 'Email OTP Login' : 'Enter Verification Code')
+              : (isLogin ? 'Welcome Back' : 'Create Swastiai Account')}
           </h2>
           <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-            {isLogin ? 'Log in to manage your AI WhatsApp agents' : 'Deploy your automated AI agent in seconds'}
+            {authMode === 'otp'
+              ? (step === 'email' ? 'Enter your email to receive a secure 6-digit login code' : `Sent code to ${email}`)
+              : 'Log in with password'}
           </p>
         </div>
 
@@ -122,70 +215,168 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {!isLogin && (
+        {infoMsg && (
+          <div style={{ padding: '10px 14px', borderRadius: '8px', background: '#dcfce7', border: '1px solid #86efac', color: '#15803d', fontSize: '0.85rem', marginBottom: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <CheckCircle2 size={16} /> {infoMsg}
+          </div>
+        )}
+
+        {authMode === 'otp' ? (
+          step === 'email' ? (
+            <form onSubmit={handleSendOTP} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Full Name (Optional)</label>
+                <div style={{ position: 'relative' }}>
+                  <User size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                  <input
+                    type="text"
+                    className="input-field"
+                    style={{ paddingLeft: '38px' }}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Harsh Agnihotri"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Email Address</label>
+                <div style={{ position: 'relative' }}>
+                  <Mail size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                  <input
+                    type="email"
+                    className="input-field"
+                    style={{ paddingLeft: '38px' }}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}>
+                {loading ? 'Sending Code...' : 'Send Login OTP Code'} <ArrowRight size={16} />
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOTP} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>6-Digit Verification Code</label>
+                <div style={{ position: 'relative' }}>
+                  <KeyRound size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                  <input
+                    type="text"
+                    className="input-field"
+                    style={{ paddingLeft: '38px', letterSpacing: '0.2em', fontSize: '1.1rem', fontWeight: 800 }}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                    placeholder="123456"
+                    required
+                    maxLength={6}
+                  />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading || otp.length < 6} className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}>
+                {loading ? 'Verifying...' : 'Verify Code & Sign In'} <ArrowRight size={16} />
+              </button>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => { setStep('email'); setOtp(''); setError(''); setInfoMsg(''); }}
+                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', cursor: 'pointer' }}
+                >
+                  ← Change email address
+                </button>
+
+                {canResend ? (
+                  <button
+                    type="button"
+                    onClick={() => handleSendOTP()}
+                    disabled={loading}
+                    style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <RotateCcw size={14} /> Resend OTP
+                  </button>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>
+                    Resend code in <strong style={{ color: '#2563eb' }}>{timer}s</strong>
+                  </span>
+                )}
+              </div>
+            </form>
+          )
+        ) : (
+          <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {!isLogin && (
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Full Name</label>
+                <div style={{ position: 'relative' }}>
+                  <User size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                  <input
+                    type="text"
+                    className="input-field"
+                    style={{ paddingLeft: '38px' }}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Harsh Agnihotri"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Full Name</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Email Address</label>
               <div style={{ position: 'relative' }}>
-                <User size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                <Mail size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
                 <input
-                  type="text"
+                  type="email"
                   className="input-field"
                   style={{ paddingLeft: '38px' }}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Harsh Agnihotri"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
                   required
                 />
               </div>
             </div>
-          )}
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Email Address</label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
-              <input
-                type="email"
-                className="input-field"
-                style={{ paddingLeft: '38px' }}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                required
-              />
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                <input
+                  type="password"
+                  className="input-field"
+                  style={{ paddingLeft: '38px' }}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
-              <input
-                type="password"
-                className="input-field"
-                style={{ paddingLeft: '38px' }}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-          </div>
+            <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}>
+              {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Free Account')} <ArrowRight size={16} />
+            </button>
+          </form>
+        )}
 
-          <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}>
-            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Free Account')} <ArrowRight size={16} />
-          </button>
-        </form>
-
-        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.85rem', color: '#64748b' }}>
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.825rem', color: '#64748b' }}>
           <button
             type="button"
-            onClick={() => { setIsLogin(!isLogin); setError(''); }}
+            onClick={() => {
+              setAuthMode(authMode === 'otp' ? 'password' : 'otp');
+              setError('');
+              setInfoMsg('');
+            }}
             style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer' }}
           >
-            {isLogin ? 'Sign Up' : 'Sign In'}
+            {authMode === 'otp' ? '🔐 Prefer Password Login?' : '✉️ Prefer Email OTP Login?'}
           </button>
         </div>
       </div>

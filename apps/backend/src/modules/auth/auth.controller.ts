@@ -211,8 +211,8 @@ export class AuthController {
       }
 
       const user = await UserModel.findOne({ email: email.toLowerCase() });
-      if (!user) {
-        return res.status(400).json({ success: false, error: "Invalid credentials" });
+      if (!user || !user.passwordHash) {
+        return res.status(400).json({ success: false, error: "Invalid credentials or login with OTP" });
       }
 
       const isMatch = await bcrypt.compare(password, user.passwordHash);
